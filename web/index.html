@@ -1,0 +1,32 @@
+<html>
+<head>
+    <title>Web Server Events Example</title>
+    <link rel="stylesheet" href="/default.css">
+</head>
+<body>
+
+<table id="container">
+    <tr>
+        <td id="info">
+            <div id="channels">
+                <h3>Listening To</h3>
+                <input type="text" id="baseUrl" value="http://chat.servicestack.net" placeholder="{baseUrl}" />
+                <input type="text" id="channel" value="home" placeholder="{channel}" />
+                <button id="btnChange">change</button>
+            </div>
+            <div id="users">
+                <h3>Users</h3>
+                <div></div>
+            </div>
+        </td>
+        <td id="messages">
+            <h3>Messages</h3>
+            <div></div>
+        </td>
+    </tr>
+</table>
+
+<script src="/dist/bundle.js"></script>
+
+</body>
+</html>

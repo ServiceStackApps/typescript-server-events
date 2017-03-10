@@ -1,0 +1,54 @@
+body, table, td, h3 {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+h3 {
+    padding: 10px 0;
+    font-weight: normal;
+    text-align: center;
+}
+table {
+    border-collapse: collapse;
+    margin: auto;
+}
+td {
+    vertical-align: top;
+    padding: 10px;
+}
+#info {
+    background: #f1f1f1;
+    width: 200px;
+}
+#channels {
+    text-align: center;
+}
+#channels b {
+    display: block;
+    font-weight: normal;
+    background: #888;
+    color: #fff;
+}
+#channels button {
+    margin: 5px;
+}
+#messages > div {
+    font-size: 12px;
+    width: 800px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+#users b, #users i {
+    display: block;
+    font-style: normal;
+    width: auto;
+}
+#users br {
+    clear: both;
+}
+#users img {
+    float: left;
+    padding: 0 5px 0 0;
+}
