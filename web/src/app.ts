@@ -3,29 +3,32 @@ import {
     ServerEventConnect,
     ServerEventMessage, 
     ServerEventCommand,
+    splitOnFirst,
 } from "servicestack-client";
 
-var channel = "";
-var baseUrl = "";
+import {
+    PostChatToChannel,
+    PostRawToChannel
+} from "./dtos";
+
+var CHANNEL = "";
+var BASEURL = "";
 var MESSAGES = {};
 
-const wrap = <T>(x:T, fn:(x:T) => any) => fn(x);
-const $ = sel => document.querySelectorAll(sel);
+const $ = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
 
-const $msgs = $("#messages > div")[0] as HTMLDivElement;
-const $users = $("#users > div")[0] as HTMLDivElement;
+const $msgs = $("#messages > div") as HTMLDivElement;
+const $users = $("#users > div") as HTMLDivElement;
 
 var sub:ServerEventConnect = null;
 
-const addMessage = (e:ServerEventMessage) => {
-    var channelMsgs:ServerEventMessage[] = MESSAGES[e.channel] || (MESSAGES[e.channel] = []);
-    channelMsgs.push(e);
-};
-const refreshMessages = () => {
-    var html = (MESSAGES[channel] || []).reverse().map(x => 
-        `<div><b>${x.selector}</b> <span>${x.json}</span></div>`);
-    $msgs.innerHTML = html.join('');
-};
+const addMessage = (x:ServerEventMessage) => 
+    addMessageHtml(`<div><b>${x.selector}</b> <span class="json" title=${x.json}>${x.json}</span></div>`);
+const addMessageHtml = (html:string) => 
+    (MESSAGES[CHANNEL] || (MESSAGES[CHANNEL] = [])).push(html);
+const refreshMessages = () => 
+    $msgs.innerHTML = (MESSAGES[CHANNEL] || []).reverse().join('');
 const refresh = (e:ServerEventMessage) => {
     addMessage(e); 
     refreshMessages();
@@ -39,23 +42,25 @@ const refreshUsers = async () => {
 
     var usersMap = {};
     var userIds = Object.keys(usersMap);
-    var html = users.map(u => 
-        `<div class="${u.userId == sub.userId ? 'me' : ''}"><img src="${u.profileUrl}" /><b>@${u.displayName}</b><i>#${u.userId}</i><br/></div>`);
+    var html = users.map(x => 
+        `<div class="${x.userId == sub.userId ? 'me' : ''}"><img src="${x.profileUrl}" /><b>@${x.displayName}</b><i>#${x.userId}</i><br/></div>`);
     $users.innerHTML = html.join('');
 };
 
 const startListening = () => {
-    baseUrl = $("#baseUrl")[0].value;
-    channel = $("#channel")[0].value;
+    BASEURL = $("#baseUrl").value;
+    CHANNEL = $("#channel").value;
     if (client != null)
         client.stop();
 
-    console.log("Connecting to ", baseUrl, channel);
+    console.log(`Connecting to ${BASEURL} on channel ${CHANNEL}`);
     
-    client = new ServerEventsClient(baseUrl, [channel], {
+    client = new ServerEventsClient(BASEURL, [CHANNEL], {
         handlers: {
             onConnect: (e:ServerEventConnect) => {
                 sub = e;
+                e.selector = "onConnect";
+                e.json = JSON.stringify(e);
                 refresh(e);
             },
             onJoin: refresh,
@@ -65,10 +70,32 @@ const startListening = () => {
                 addMessage(e);
                 refreshMessages();
             }
+        },
+        onException: e => {
+            addMessageHtml(`<div class="error">${e.message || e}</div>`);
         }
     }).start();
 }
 
 startListening();
-$("#btnChange")[0].onclick = startListening;
-$("input").forEach(x => x.onkeydown = e => e.keyCode == 13 ? startListening() : null);
+$("#btnChange").onclick = startListening;
+$$("input").forEach(x => x.onkeydown = e => e.keyCode == 13 ? startListening() : null);
+$("#btnSendChat").onclick = e => {
+    let request = new PostChatToChannel();
+    request.from = sub.id;
+    request.channel = CHANNEL;    
+    request.selector = "cmd.chat";
+    request.message = $("#txtChat").value;
+    client.serviceClient.post(request);
+};
+$("#rawOptions").onchange = function(e) { $("#txtRaw").value = this.value; };
+$("#btnSendRaw").onclick = e => {
+    var parts = splitOnFirst($("#txtRaw").value, " ");
+    if (!parts[0].trim()) return;
+    let request = new PostRawToChannel();
+    request.from = sub.id;
+    request.channel = CHANNEL;    
+    request.selector = parts[0].trim();
+    request.message = parts.length == 2 ? parts[1].trim() : null;
+    client.serviceClient.post(request);
+};

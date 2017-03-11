@@ -37,23 +37,22 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var servicestack_client_1 = require("servicestack-client");
-var channel = "";
-var baseUrl = "";
-var wrap = function (x, fn) { return fn(x); };
-var $ = function (sel) { return document.querySelectorAll(sel); };
-var $msgs = $("#messages > div")[0];
-var $users = $("#users > div")[0];
+var CHANNEL = "";
+var BASEURL = "";
+var MESSAGES = {};
+var $ = function (sel) { return document.querySelector(sel); };
+var $$ = function (sel) { return document.querySelectorAll(sel); };
+var $msgs = $("#messages > div");
+var $users = $("#users > div");
 var sub = null;
-var msgs = {};
-var addMessage = function (e) {
-    var channelMsgs = msgs[e.channel] || (msgs[e.channel] = []);
-    channelMsgs.push(e);
+var addMessage = function (x) {
+    return addMessageHtml("<div><b>" + x.selector + "</b> <span>" + x.json + "</span></div>");
+};
+var addMessageHtml = function (html) {
+    return (MESSAGES[CHANNEL] || (MESSAGES[CHANNEL] = [])).push(html);
 };
 var refreshMessages = function () {
-    var html = (msgs[channel] || []).reverse().map(function (x) {
-        return "<div><b>" + x.selector + "</b> <span>" + x.json + "</span></div>";
-    });
-    $msgs.innerHTML = html.join('');
+    return $msgs.innerHTML = (MESSAGES[CHANNEL] || []).reverse().join('');
 };
 var refresh = function (e) {
     addMessage(e);
@@ -71,8 +70,8 @@ var refreshUsers = function () { return __awaiter(_this, void 0, void 0, functio
                 users.sort(function (x, y) { return x.userId.localeCompare(y.userId); });
                 usersMap = {};
                 userIds = Object.keys(usersMap);
-                html = users.map(function (u) {
-                    return "<div class=\"" + (u.userId == sub.userId ? 'me' : '') + "\"><img src=\"" + u.profileUrl + "\" /><b>@" + u.displayName + "</b><i>#" + u.userId + "</i><br/></div>";
+                html = users.map(function (x) {
+                    return "<div class=\"" + (x.userId == sub.userId ? 'me' : '') + "\"><img src=\"" + x.profileUrl + "\" /><b>@" + x.displayName + "</b><i>#" + x.userId + "</i><br/></div>";
                 });
                 $users.innerHTML = html.join('');
                 return [2 /*return*/];
@@ -80,15 +79,17 @@ var refreshUsers = function () { return __awaiter(_this, void 0, void 0, functio
     });
 }); };
 var startListening = function () {
-    baseUrl = $("#baseUrl").value;
-    channel = $("#channel").value;
-    msgs = {};
+    BASEURL = $("#baseUrl").value;
+    CHANNEL = $("#channel").value;
     if (client != null)
         client.stop();
-    client = new servicestack_client_1.ServerEventsClient(baseUrl, [channel], {
+    console.log("Connecting to " + BASEURL + " on channel " + CHANNEL);
+    client = new servicestack_client_1.ServerEventsClient(BASEURL, [CHANNEL], {
         handlers: {
             onConnect: function (e) {
                 sub = e;
+                e.selector = "onConnect";
+                e.json = JSON.stringify(e);
                 refresh(e);
             },
             onJoin: refresh,
@@ -98,9 +99,13 @@ var startListening = function () {
                 addMessage(e);
                 refreshMessages();
             }
+        },
+        onException: function (e) {
+            addMessageHtml("<div class=\"error\">" + (e.message || e) + "</div>");
         }
     }).start();
 };
 startListening();
 $("#btnChange").onclick = startListening;
+$$("input").forEach(function (x) { return x.onkeydown = function (e) { return e.keyCode == 13 ? startListening() : null; }; });
 //# sourceMappingURL=app.js.map

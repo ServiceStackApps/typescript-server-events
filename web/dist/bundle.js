@@ -131,9 +131,21 @@ var ServerEventsClient = (function () {
     function ServerEventsClient(baseUrl, channels, options, eventSource) {
         if (options === void 0) { options = {}; }
         if (eventSource === void 0) { eventSource = null; }
+        var _this = this;
         this.channels = channels;
         this.options = options;
         this.eventSource = eventSource;
+        this.onError = function (error) {
+            if (_this.stopped)
+                return;
+            if (!error)
+                error = event;
+            var fn = _this.options.onException;
+            if (fn != null)
+                fn.call(_this.eventSource, error);
+            if (_this.options.onTick)
+                _this.options.onTick();
+        };
         if (this.channels.length === 0)
             throw "at least 1 channel is required";
         this.resolver = this.options.resolver || new NewInstanceResolver();
@@ -210,17 +222,13 @@ var ServerEventsClient = (function () {
                             var stopFn = opt.handlers["onStop"];
                             if (stopFn != null)
                                 stopFn.apply(_this.eventSource);
-                            _this.reconnectServerEvents({ errorArgs: { error: "CLOSED" } });
+                            _this.reconnectServerEvents({ error: new Error("EventSource is CLOSED") });
                             return;
                         }
                         fetch(new Request(opt.heartbeatUrl, { method: "POST", mode: "cors", headers: headers }))
-                            .then(function (res) {
-                            if (!res.ok)
-                                throw res;
-                        })
-                            .catch(function (res) {
-                            _this.reconnectServerEvents({ errorArgs: [res] });
-                        });
+                            .then(function (res) { if (!res.ok)
+                            throw new Error(res.status + " - " + res.statusText); })
+                            .catch(function (error) { return _this.reconnectServerEvents({ error: error }); });
                     }, (this.connectionInfo && this.connectionInfo.heartbeatIntervalMs) || opt.heartbeatIntervalMs || 10000);
                 }
                 if (opt.unRegisterUrl) {
@@ -274,37 +282,28 @@ var ServerEventsClient = (function () {
         if (opt.onTick)
             opt.onTick();
     };
-    ServerEventsClient.prototype.onError = function (e) {
-        if (this.stopped)
-            return;
-        if (!e)
-            e = event;
-        var fn = this.options.handlers["onException"];
-        if (fn != null)
-            fn.apply(this.eventSource, e);
-        if (this.options.onTick)
-            this.options.onTick();
-    };
     ServerEventsClient.prototype.reconnectServerEvents = function (opt) {
         if (opt === void 0) { opt = {}; }
         if (this.stopped)
             return;
-        this.onError(opt.errorArgs && opt.errorArgs[0]);
+        if (opt.error)
+            this.onError(opt.error);
         var hold = this.eventSource;
         var es = new EventSource(opt.url || this.eventStreamUri || hold.url);
         es.onerror = opt.onerror || hold.onerror;
         es.onmessage = opt.onmessage || hold.onmessage;
-        var fn = this.options.handlers["onReconnect"];
+        var fn = this.options.onReconnect;
         if (fn != null)
-            fn.apply(es, opt.errorArgs);
+            fn.call(es, opt.error);
         hold.close();
         return this.eventSource = es;
     };
     ServerEventsClient.prototype.start = function () {
+        var _this = this;
         if (this.eventSource == null || this.eventSource.readyState === EventSource.CLOSED) {
             this.eventSource = new EventSource(this.eventStreamUri);
             this.eventSource.onmessage = this.onMessage.bind(this);
-            this.eventSource.onerror = this.onError.bind(this);
+            this.eventSource.onerror = function (e) { return _this.onError(e); };
         }
         return this;
     };
@@ -317,7 +316,10 @@ var ServerEventsClient = (function () {
         if (hold == null || hold.unRegisterUrl == null)
             return new Promise(function (resolve, reject) { return resolve(); });
         this.connectionInfo = null;
-        return fetch(new Request(hold.unRegisterUrl, { method: "POST", mode: "cors" }));
+        return fetch(new Request(hold.unRegisterUrl, { method: "POST", mode: "cors" }))
+            .then(function (res) { if (!res.ok)
+            throw new Error(res.status + " - " + res.statusText); })
+            .catch(this.onError);
     };
     ServerEventsClient.prototype.invokeReceiver = function (r, cmd, el, request, name) {
         if (r) {
@@ -425,13 +427,16 @@ var ServerEventsClient = (function () {
         return this;
     };
     ServerEventsClient.prototype.raiseEvent = function (eventName, msg) {
+        var _this = this;
         var handlers = this.listeners[eventName];
         if (handlers) {
             handlers.forEach(function (x) {
                 try {
                     x(msg);
                 }
-                catch (e) { }
+                catch (e) {
+                    _this.onError(e);
+                }
             });
         }
     };
@@ -451,7 +456,7 @@ var ServerEventsClient = (function () {
             .then(function (x) {
             _this.update(request.subscribeChannels, request.unsubscribeChannels);
             return null;
-        });
+        }).catch(this.onError);
     };
     ServerEventsClient.prototype.subscribeToChannels = function () {
         var _this = this;
@@ -465,7 +470,7 @@ var ServerEventsClient = (function () {
         return this.serviceClient.post(request)
             .then(function (x) {
             _this.update(channels, null);
-        });
+        }).catch(this.onError);
     };
     ServerEventsClient.prototype.unsubscribeFromChannels = function () {
         var _this = this;
@@ -479,14 +484,15 @@ var ServerEventsClient = (function () {
         return this.serviceClient.post(request)
             .then(function (x) {
             _this.update(null, channels);
-        });
+        }).catch(this.onError);
     };
     ServerEventsClient.prototype.getChannelSubscribers = function () {
         var _this = this;
         var request = new GetEventSubscribers();
         request.channels = this.channels;
         return this.serviceClient.get(request)
-            .then(function (r) { return r.map(function (x) { return _this.toServerEventUser(x); }); });
+            .then(function (r) { return r.map(function (x) { return _this.toServerEventUser(x); }); })
+            .catch(this.onError);
     };
     ServerEventsClient.prototype.toServerEventUser = function (map) {
         var channels = map["channels"];
@@ -3475,23 +3481,23 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var servicestack_client_1 = __webpack_require__(0);
-var channel = "";
-var baseUrl = "";
+var dtos_1 = __webpack_require__(9);
+var CHANNEL = "";
+var BASEURL = "";
 var MESSAGES = {};
-var wrap = function (x, fn) { return fn(x); };
-var $ = function (sel) { return document.querySelectorAll(sel); };
-var $msgs = $("#messages > div")[0];
-var $users = $("#users > div")[0];
+var $ = function (sel) { return document.querySelector(sel); };
+var $$ = function (sel) { return document.querySelectorAll(sel); };
+var $msgs = $("#messages > div");
+var $users = $("#users > div");
 var sub = null;
-var addMessage = function (e) {
-    var channelMsgs = MESSAGES[e.channel] || (MESSAGES[e.channel] = []);
-    channelMsgs.push(e);
+var addMessage = function (x) {
+    return addMessageHtml("<div><b>" + x.selector + "</b> <span class=\"json\" title=" + x.json + ">" + x.json + "</span></div>");
+};
+var addMessageHtml = function (html) {
+    return (MESSAGES[CHANNEL] || (MESSAGES[CHANNEL] = [])).push(html);
 };
 var refreshMessages = function () {
-    var html = (MESSAGES[channel] || []).reverse().map(function (x) {
-        return "<div><b>" + x.selector + "</b> <span>" + x.json + "</span></div>";
-    });
-    $msgs.innerHTML = html.join('');
+    return $msgs.innerHTML = (MESSAGES[CHANNEL] || []).reverse().join('');
 };
 var refresh = function (e) {
     addMessage(e);
@@ -3509,8 +3515,8 @@ var refreshUsers = function () { return __awaiter(_this, void 0, void 0, functio
                 users.sort(function (x, y) { return x.userId.localeCompare(y.userId); });
                 usersMap = {};
                 userIds = Object.keys(usersMap);
-                html = users.map(function (u) {
-                    return "<div class=\"" + (u.userId == sub.userId ? 'me' : '') + "\"><img src=\"" + u.profileUrl + "\" /><b>@" + u.displayName + "</b><i>#" + u.userId + "</i><br/></div>";
+                html = users.map(function (x) {
+                    return "<div class=\"" + (x.userId == sub.userId ? 'me' : '') + "\"><img src=\"" + x.profileUrl + "\" /><b>@" + x.displayName + "</b><i>#" + x.userId + "</i><br/></div>";
                 });
                 $users.innerHTML = html.join('');
                 return [2 /*return*/];
@@ -3518,15 +3524,17 @@ var refreshUsers = function () { return __awaiter(_this, void 0, void 0, functio
     });
 }); };
 var startListening = function () {
-    baseUrl = $("#baseUrl")[0].value;
-    channel = $("#channel")[0].value;
+    BASEURL = $("#baseUrl").value;
+    CHANNEL = $("#channel").value;
     if (client != null)
         client.stop();
-    console.log("Connecting to ", baseUrl, channel);
-    client = new servicestack_client_1.ServerEventsClient(baseUrl, [channel], {
+    console.log("Connecting to " + BASEURL + " on channel " + CHANNEL);
+    client = new servicestack_client_1.ServerEventsClient(BASEURL, [CHANNEL], {
         handlers: {
             onConnect: function (e) {
                 sub = e;
+                e.selector = "onConnect";
+                e.json = JSON.stringify(e);
                 refresh(e);
             },
             onJoin: refresh,
@@ -3536,12 +3544,184 @@ var startListening = function () {
                 addMessage(e);
                 refreshMessages();
             }
+        },
+        onException: function (e) {
+            addMessageHtml("<div class=\"error\">" + (e.message || e) + "</div>");
         }
     }).start();
 };
 startListening();
-$("#btnChange")[0].onclick = startListening;
-$("input").forEach(function (x) { return x.onkeydown = function (e) { return e.keyCode == 13 ? startListening() : null; }; });
+$("#btnChange").onclick = startListening;
+$$("input").forEach(function (x) { return x.onkeydown = function (e) { return e.keyCode == 13 ? startListening() : null; }; });
+$("#btnSendChat").onclick = function (e) {
+    var request = new dtos_1.PostChatToChannel();
+    request.from = sub.id;
+    request.channel = CHANNEL;
+    request.selector = "cmd.chat";
+    request.message = $("#txtChat").value;
+    client.serviceClient.post(request);
+};
+$("#rawOptions").onchange = function (e) { $("#txtRaw").value = this.value; };
+$("#btnSendRaw").onclick = function (e) {
+    var parts = servicestack_client_1.splitOnFirst($("#txtRaw").value, " ");
+    if (!parts[0].trim())
+        return;
+    var request = new dtos_1.PostRawToChannel();
+    request.from = sub.id;
+    request.channel = CHANNEL;
+    request.selector = parts[0].trim();
+    request.message = parts.length == 2 ? parts[1].trim() : null;
+    client.serviceClient.post(request);
+};
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var ResponseError = (function () {
+    function ResponseError() {
+    }
+    return ResponseError;
+}());
+exports.ResponseError = ResponseError;
+var ResponseStatus = (function () {
+    function ResponseStatus() {
+    }
+    return ResponseStatus;
+}());
+exports.ResponseStatus = ResponseStatus;
+var CustomType = (function () {
+    function CustomType() {
+    }
+    return CustomType;
+}());
+exports.CustomType = CustomType;
+var SetterType = (function () {
+    function SetterType() {
+    }
+    return SetterType;
+}());
+exports.SetterType = SetterType;
+var ChatMessage = (function () {
+    function ChatMessage() {
+    }
+    return ChatMessage;
+}());
+exports.ChatMessage = ChatMessage;
+var GetChatHistoryResponse = (function () {
+    function GetChatHistoryResponse() {
+    }
+    return GetChatHistoryResponse;
+}());
+exports.GetChatHistoryResponse = GetChatHistoryResponse;
+var GetUserDetailsResponse = (function () {
+    function GetUserDetailsResponse() {
+    }
+    return GetUserDetailsResponse;
+}());
+exports.GetUserDetailsResponse = GetUserDetailsResponse;
+var AuthenticateResponse = (function () {
+    function AuthenticateResponse() {
+    }
+    return AuthenticateResponse;
+}());
+exports.AuthenticateResponse = AuthenticateResponse;
+var AssignRolesResponse = (function () {
+    function AssignRolesResponse() {
+    }
+    return AssignRolesResponse;
+}());
+exports.AssignRolesResponse = AssignRolesResponse;
+var UnAssignRolesResponse = (function () {
+    function UnAssignRolesResponse() {
+    }
+    return UnAssignRolesResponse;
+}());
+exports.UnAssignRolesResponse = UnAssignRolesResponse;
+var PostRawToChannel = (function () {
+    function PostRawToChannel() {
+    }
+    PostRawToChannel.prototype.createResponse = function () { };
+    PostRawToChannel.prototype.getTypeName = function () { return "PostRawToChannel"; };
+    return PostRawToChannel;
+}());
+exports.PostRawToChannel = PostRawToChannel;
+var PostChatToChannel = (function () {
+    function PostChatToChannel() {
+    }
+    PostChatToChannel.prototype.createResponse = function () { return new ChatMessage(); };
+    PostChatToChannel.prototype.getTypeName = function () { return "PostChatToChannel"; };
+    return PostChatToChannel;
+}());
+exports.PostChatToChannel = PostChatToChannel;
+var GetChatHistory = (function () {
+    function GetChatHistory() {
+    }
+    GetChatHistory.prototype.createResponse = function () { return new GetChatHistoryResponse(); };
+    GetChatHistory.prototype.getTypeName = function () { return "GetChatHistory"; };
+    return GetChatHistory;
+}());
+exports.GetChatHistory = GetChatHistory;
+var ClearChatHistory = (function () {
+    function ClearChatHistory() {
+    }
+    ClearChatHistory.prototype.createResponse = function () { };
+    ClearChatHistory.prototype.getTypeName = function () { return "ClearChatHistory"; };
+    return ClearChatHistory;
+}());
+exports.ClearChatHistory = ClearChatHistory;
+var ResetServerEvents = (function () {
+    function ResetServerEvents() {
+    }
+    ResetServerEvents.prototype.createResponse = function () { };
+    ResetServerEvents.prototype.getTypeName = function () { return "ResetServerEvents"; };
+    return ResetServerEvents;
+}());
+exports.ResetServerEvents = ResetServerEvents;
+var PostObjectToChannel = (function () {
+    function PostObjectToChannel() {
+    }
+    PostObjectToChannel.prototype.createResponse = function () { };
+    PostObjectToChannel.prototype.getTypeName = function () { return "PostObjectToChannel"; };
+    return PostObjectToChannel;
+}());
+exports.PostObjectToChannel = PostObjectToChannel;
+var GetUserDetails = (function () {
+    function GetUserDetails() {
+    }
+    GetUserDetails.prototype.createResponse = function () { return new GetUserDetailsResponse(); };
+    GetUserDetails.prototype.getTypeName = function () { return "GetUserDetails"; };
+    return GetUserDetails;
+}());
+exports.GetUserDetails = GetUserDetails;
+var Authenticate = (function () {
+    function Authenticate() {
+    }
+    Authenticate.prototype.createResponse = function () { return new AuthenticateResponse(); };
+    Authenticate.prototype.getTypeName = function () { return "Authenticate"; };
+    return Authenticate;
+}());
+exports.Authenticate = Authenticate;
+var AssignRoles = (function () {
+    function AssignRoles() {
+    }
+    AssignRoles.prototype.createResponse = function () { return new AssignRolesResponse(); };
+    AssignRoles.prototype.getTypeName = function () { return "AssignRoles"; };
+    return AssignRoles;
+}());
+exports.AssignRoles = AssignRoles;
+var UnAssignRoles = (function () {
+    function UnAssignRoles() {
+    }
+    UnAssignRoles.prototype.createResponse = function () { return new UnAssignRolesResponse(); };
+    UnAssignRoles.prototype.getTypeName = function () { return "UnAssignRoles"; };
+    return UnAssignRoles;
+}());
+exports.UnAssignRoles = UnAssignRoles;
 
 
 /***/ })

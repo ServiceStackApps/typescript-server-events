@@ -4,6 +4,8 @@ body, table, td, h3 {
 }
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100%;
+    background: #03324C;
 }
 h3 {
     padding: 10px 0;
@@ -13,16 +15,30 @@ h3 {
 table {
     border-collapse: collapse;
     margin: auto;
+    height: 100%;
+    background: #fff;
 }
 td {
     vertical-align: top;
-    padding: 10px;
+    padding: 15px;
 }
 #info {
     background: #f1f1f1;
-    width: 200px;
+    width: 240px;
 }
-#channels {
+input, select {
+    width: 100%;
+    margin: 0 0 5px 0;
+    padding: 2px 5px;
+    font-size: 16px;
+}
+select {
+    font-size: 12px;    
+}
+button {
+    margin: 0 0 10px 0;
+}
+#channels, #send {
     text-align: center;
 }
 #channels b {
@@ -30,9 +46,6 @@ td {
     font-weight: normal;
     background: #888;
     color: #fff;
-}
-#channels button {
-    margin: 5px;
 }
 #messages > div {
     font-size: 12px;
@@ -50,5 +63,12 @@ td {
 }
 #users img {
     float: left;
-    padding: 0 5px 0 0;
+    padding: 0 5px 5px 0;
+    width: 48px;
+}
+#messages .json {
+    color: #666;
+}
+.error {
+    color: red;
 }

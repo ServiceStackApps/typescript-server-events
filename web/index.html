@@ -14,13 +14,31 @@
                 <input type="text" id="channel" value="home" placeholder="{channel}" />
                 <button id="btnChange">change</button>
             </div>
+            <div id="send">
+                <h3>Send Messages</h3>
+                <input type="text" id="txtChat" value="Hi from TypeScript Web!" />
+                <button id="btnSendChat">post chat</button>
+                <select id="rawOptions">
+                    <option value="">[ raw message examples]</option>
+                    <option>cmd.announce This is TypeScript Web...</option>
+                    <option>cmd.toggle$#channels</option>
+                    <option>css.background-image url(http://i.imgur.com/hJP6SMw.jpg)</option>
+                    <option>css.background$#top #673ab7</option>
+                    <option>tv.watch https://youtu.be/hADI92zCIvE</option>
+                    <option>tv.off</option>
+                    <option>document.title TypeScript Server Events!</option>
+                    <option>trigger.customEvent arg</option>
+                </select>
+                <input type="text" id="txtRaw" />
+                <button id="btnSendRaw">post raw</button>
+            </div>
             <div id="users">
-                <h3>Users</h3>
+                <h3>Users in Channel</h3>
                 <div></div>
             </div>
         </td>
         <td id="messages">
-            <h3>Messages</h3>
+            <h3>Server Event Messages</h3>
             <div></div>
         </td>
     </tr>
