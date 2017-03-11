@@ -32,7 +32,7 @@ const refresh = (e:ServerEventMessage) => {
 var client:ServerEventsClient = null;
 const refreshUsers = async () => {
     var users = await client.getChannelSubscribers();
-    users.sort((x,y) => x.userId.localeCompare(y.userId));
+    users.sort((x,y) => y.userId.localeCompare(x.userId));
 
     var usersMap = {};
     var userIds = Object.keys(usersMap);
@@ -44,7 +44,8 @@ const refreshUsers = async () => {
 const startListening = () => {
     BASEURL = $("#baseUrl").value;
     CHANNEL = $("#channel").value;
-    if (client != null) client.stop();
+    if (client != null) 
+        client.stop();
 
     console.log(`Connecting to ${BASEURL} on channel ${CHANNEL}`);
     client = new ServerEventsClient(BASEURL, [CHANNEL], {
@@ -70,18 +71,8 @@ const startListening = () => {
 }
 
 startListening();
-$("#btnChange").onclick = startListening;
-$$("input").forEach(x => x.onkeydown = e => e.keyCode == 13 ? startListening() : null);
-$("#btnSendChat").onclick = e => {
-    let request = new PostChatToChannel();
-    request.from = sub.id;
-    request.channel = CHANNEL;    
-    request.selector = "cmd.chat";
-    request.message = $("#txtChat").value;
-    client.serviceClient.post(request);
-};
-$("#rawOptions").onchange = function(e) { $("#txtRaw").value = this.value; };
-$("#btnSendRaw").onclick = e => {
+
+const sendChat = () => {
     var parts = splitOnFirst($("#txtRaw").value, " ");
     if (!parts[0].trim()) return;
     let request = new PostRawToChannel();
@@ -91,3 +82,19 @@ $("#btnSendRaw").onclick = e => {
     request.message = parts.length == 2 ? parts[1].trim() : null;
     client.serviceClient.post(request);
 };
+const sendRaw = () => {
+    let request = new PostChatToChannel();
+    request.from = sub.id;
+    request.channel = CHANNEL;    
+    request.selector = "cmd.chat";
+    request.message = $("#txtChat").value;
+    client.serviceClient.post(request);
+};
+
+$("#btnChange").onclick = startListening;
+$$("#baseUrl,#channel").forEach(x => x.onkeydown = e => e.keyCode == 13 ? startListening() : null);
+$("#btnSendChat").onclick = sendChat;
+$("#txtChat").onkeydown = e => e.keyCode == 13 ? sendChat() : null;
+$("#rawOptions").onchange = function(e) { $("#txtRaw").value = this.value; };
+$("#btnSendRaw").onclick = sendRaw;
+$("#txtChat").onkeydown = e => e.keyCode == 13 ? sendRaw() : null;
