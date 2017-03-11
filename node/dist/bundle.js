@@ -3474,7 +3474,7 @@ $("#btnSendChat").onclick = sendChat;
 $("#txtChat").onkeydown = function (e) { return e.keyCode == 13 ? sendChat() : null; };
 $("#rawOptions").onchange = function (e) { $("#txtRaw").value = this.value; };
 $("#btnSendRaw").onclick = sendRaw;
-$("#txtChat").onkeydown = function (e) { return e.keyCode == 13 ? sendRaw() : null; };
+$("#txtRaw").onkeydown = function (e) { return e.keyCode == 13 ? sendRaw() : null; };
 
 
 /***/ })

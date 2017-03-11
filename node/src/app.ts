@@ -34,4 +34,4 @@ $("#btnSendChat").onclick = sendChat;
 $("#txtChat").onkeydown = e => e.keyCode == 13 ? sendChat() : null;
 $("#rawOptions").onchange = function(e) { $("#txtRaw").value = this.value; };
 $("#btnSendRaw").onclick = sendRaw;
-$("#txtChat").onkeydown = e => e.keyCode == 13 ? sendRaw() : null;
+$("#txtRaw").onkeydown = e => e.keyCode == 13 ? sendRaw() : null;

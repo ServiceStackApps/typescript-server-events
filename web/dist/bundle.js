@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 8);
+/******/ 	return __webpack_require__(__webpack_require__.s = 9);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -73,7 +73,7 @@
 "use strict";
 /* WEBPACK VAR INJECTION */(function(Buffer) {
 Object.defineProperty(exports, "__esModule", { value: true });
-__webpack_require__(5);
+__webpack_require__(6);
 var ResponseStatus = (function () {
     function ResponseStatus() {
     }
@@ -910,10 +910,159 @@ exports.timeFmt12 = function (d) {
     return exports.padInt((d.getHours() + 24) % 12 || 12) + ":" + exports.padInt(d.getMinutes()) + ":" + exports.padInt(d.getSeconds()) + " " + (d.getHours() > 12 ? "PM" : "AM");
 };
 //# sourceMappingURL=index.js.map
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3).Buffer))
 
 /***/ }),
 /* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var ResponseError = (function () {
+    function ResponseError() {
+    }
+    return ResponseError;
+}());
+exports.ResponseError = ResponseError;
+var ResponseStatus = (function () {
+    function ResponseStatus() {
+    }
+    return ResponseStatus;
+}());
+exports.ResponseStatus = ResponseStatus;
+var CustomType = (function () {
+    function CustomType() {
+    }
+    return CustomType;
+}());
+exports.CustomType = CustomType;
+var SetterType = (function () {
+    function SetterType() {
+    }
+    return SetterType;
+}());
+exports.SetterType = SetterType;
+var ChatMessage = (function () {
+    function ChatMessage() {
+    }
+    return ChatMessage;
+}());
+exports.ChatMessage = ChatMessage;
+var GetChatHistoryResponse = (function () {
+    function GetChatHistoryResponse() {
+    }
+    return GetChatHistoryResponse;
+}());
+exports.GetChatHistoryResponse = GetChatHistoryResponse;
+var GetUserDetailsResponse = (function () {
+    function GetUserDetailsResponse() {
+    }
+    return GetUserDetailsResponse;
+}());
+exports.GetUserDetailsResponse = GetUserDetailsResponse;
+var AuthenticateResponse = (function () {
+    function AuthenticateResponse() {
+    }
+    return AuthenticateResponse;
+}());
+exports.AuthenticateResponse = AuthenticateResponse;
+var AssignRolesResponse = (function () {
+    function AssignRolesResponse() {
+    }
+    return AssignRolesResponse;
+}());
+exports.AssignRolesResponse = AssignRolesResponse;
+var UnAssignRolesResponse = (function () {
+    function UnAssignRolesResponse() {
+    }
+    return UnAssignRolesResponse;
+}());
+exports.UnAssignRolesResponse = UnAssignRolesResponse;
+var PostRawToChannel = (function () {
+    function PostRawToChannel() {
+    }
+    PostRawToChannel.prototype.createResponse = function () { };
+    PostRawToChannel.prototype.getTypeName = function () { return "PostRawToChannel"; };
+    return PostRawToChannel;
+}());
+exports.PostRawToChannel = PostRawToChannel;
+var PostChatToChannel = (function () {
+    function PostChatToChannel() {
+    }
+    PostChatToChannel.prototype.createResponse = function () { return new ChatMessage(); };
+    PostChatToChannel.prototype.getTypeName = function () { return "PostChatToChannel"; };
+    return PostChatToChannel;
+}());
+exports.PostChatToChannel = PostChatToChannel;
+var GetChatHistory = (function () {
+    function GetChatHistory() {
+    }
+    GetChatHistory.prototype.createResponse = function () { return new GetChatHistoryResponse(); };
+    GetChatHistory.prototype.getTypeName = function () { return "GetChatHistory"; };
+    return GetChatHistory;
+}());
+exports.GetChatHistory = GetChatHistory;
+var ClearChatHistory = (function () {
+    function ClearChatHistory() {
+    }
+    ClearChatHistory.prototype.createResponse = function () { };
+    ClearChatHistory.prototype.getTypeName = function () { return "ClearChatHistory"; };
+    return ClearChatHistory;
+}());
+exports.ClearChatHistory = ClearChatHistory;
+var ResetServerEvents = (function () {
+    function ResetServerEvents() {
+    }
+    ResetServerEvents.prototype.createResponse = function () { };
+    ResetServerEvents.prototype.getTypeName = function () { return "ResetServerEvents"; };
+    return ResetServerEvents;
+}());
+exports.ResetServerEvents = ResetServerEvents;
+var PostObjectToChannel = (function () {
+    function PostObjectToChannel() {
+    }
+    PostObjectToChannel.prototype.createResponse = function () { };
+    PostObjectToChannel.prototype.getTypeName = function () { return "PostObjectToChannel"; };
+    return PostObjectToChannel;
+}());
+exports.PostObjectToChannel = PostObjectToChannel;
+var GetUserDetails = (function () {
+    function GetUserDetails() {
+    }
+    GetUserDetails.prototype.createResponse = function () { return new GetUserDetailsResponse(); };
+    GetUserDetails.prototype.getTypeName = function () { return "GetUserDetails"; };
+    return GetUserDetails;
+}());
+exports.GetUserDetails = GetUserDetails;
+var Authenticate = (function () {
+    function Authenticate() {
+    }
+    Authenticate.prototype.createResponse = function () { return new AuthenticateResponse(); };
+    Authenticate.prototype.getTypeName = function () { return "Authenticate"; };
+    return Authenticate;
+}());
+exports.Authenticate = Authenticate;
+var AssignRoles = (function () {
+    function AssignRoles() {
+    }
+    AssignRoles.prototype.createResponse = function () { return new AssignRolesResponse(); };
+    AssignRoles.prototype.getTypeName = function () { return "AssignRoles"; };
+    return AssignRoles;
+}());
+exports.AssignRoles = AssignRoles;
+var UnAssignRoles = (function () {
+    function UnAssignRoles() {
+    }
+    UnAssignRoles.prototype.createResponse = function () { return new UnAssignRolesResponse(); };
+    UnAssignRoles.prototype.getTypeName = function () { return "UnAssignRoles"; };
+    return UnAssignRoles;
+}());
+exports.UnAssignRoles = UnAssignRoles;
+
+
+/***/ }),
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1034,7 +1183,7 @@ function fromByteArray (uint8) {
 
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1048,9 +1197,9 @@ function fromByteArray (uint8) {
 
 
 
-var base64 = __webpack_require__(1)
-var ieee754 = __webpack_require__(3)
-var isArray = __webpack_require__(4)
+var base64 = __webpack_require__(2)
+var ieee754 = __webpack_require__(4)
+var isArray = __webpack_require__(5)
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -2828,10 +2977,10 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports) {
 
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -2921,7 +3070,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports) {
 
 var toString = {}.toString;
@@ -2932,19 +3081,19 @@ module.exports = Array.isArray || function (arr) {
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // the whatwg-fetch polyfill installs the fetch() function
 // on the global object (window or self)
 //
 // Return that as the export for use in Webpack, Browserify etc.
-__webpack_require__(7);
+__webpack_require__(8);
 module.exports = self.fetch.bind(self);
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports) {
 
 var g;
@@ -2971,7 +3120,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports) {
 
 (function(self) {
@@ -3438,7 +3587,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3481,7 +3630,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var servicestack_client_1 = __webpack_require__(0);
-var dtos_1 = __webpack_require__(9);
+var dtos_1 = __webpack_require__(1);
 var CHANNEL = "";
 var BASEURL = "";
 var MESSAGES = {};
@@ -3512,7 +3661,7 @@ var refreshUsers = function () { return __awaiter(_this, void 0, void 0, functio
             case 0: return [4 /*yield*/, client.getChannelSubscribers()];
             case 1:
                 users = _a.sent();
-                users.sort(function (x, y) { return x.userId.localeCompare(y.userId); });
+                users.sort(function (x, y) { return y.userId.localeCompare(x.userId); });
                 usersMap = {};
                 userIds = Object.keys(usersMap);
                 html = users.map(function (x) {
@@ -3551,9 +3700,7 @@ var startListening = function () {
     }).start();
 };
 startListening();
-$("#btnChange").onclick = startListening;
-$$("input").forEach(function (x) { return x.onkeydown = function (e) { return e.keyCode == 13 ? startListening() : null; }; });
-$("#btnSendChat").onclick = function (e) {
+var sendChat = function () {
     var request = new dtos_1.PostChatToChannel();
     request.from = sub.id;
     request.channel = CHANNEL;
@@ -3561,8 +3708,7 @@ $("#btnSendChat").onclick = function (e) {
     request.message = $("#txtChat").value;
     client.serviceClient.post(request);
 };
-$("#rawOptions").onchange = function (e) { $("#txtRaw").value = this.value; };
-$("#btnSendRaw").onclick = function (e) {
+var sendRaw = function () {
     var parts = servicestack_client_1.splitOnFirst($("#txtRaw").value, " ");
     if (!parts[0].trim())
         return;
@@ -3573,155 +3719,13 @@ $("#btnSendRaw").onclick = function (e) {
     request.message = parts.length == 2 ? parts[1].trim() : null;
     client.serviceClient.post(request);
 };
-
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var ResponseError = (function () {
-    function ResponseError() {
-    }
-    return ResponseError;
-}());
-exports.ResponseError = ResponseError;
-var ResponseStatus = (function () {
-    function ResponseStatus() {
-    }
-    return ResponseStatus;
-}());
-exports.ResponseStatus = ResponseStatus;
-var CustomType = (function () {
-    function CustomType() {
-    }
-    return CustomType;
-}());
-exports.CustomType = CustomType;
-var SetterType = (function () {
-    function SetterType() {
-    }
-    return SetterType;
-}());
-exports.SetterType = SetterType;
-var ChatMessage = (function () {
-    function ChatMessage() {
-    }
-    return ChatMessage;
-}());
-exports.ChatMessage = ChatMessage;
-var GetChatHistoryResponse = (function () {
-    function GetChatHistoryResponse() {
-    }
-    return GetChatHistoryResponse;
-}());
-exports.GetChatHistoryResponse = GetChatHistoryResponse;
-var GetUserDetailsResponse = (function () {
-    function GetUserDetailsResponse() {
-    }
-    return GetUserDetailsResponse;
-}());
-exports.GetUserDetailsResponse = GetUserDetailsResponse;
-var AuthenticateResponse = (function () {
-    function AuthenticateResponse() {
-    }
-    return AuthenticateResponse;
-}());
-exports.AuthenticateResponse = AuthenticateResponse;
-var AssignRolesResponse = (function () {
-    function AssignRolesResponse() {
-    }
-    return AssignRolesResponse;
-}());
-exports.AssignRolesResponse = AssignRolesResponse;
-var UnAssignRolesResponse = (function () {
-    function UnAssignRolesResponse() {
-    }
-    return UnAssignRolesResponse;
-}());
-exports.UnAssignRolesResponse = UnAssignRolesResponse;
-var PostRawToChannel = (function () {
-    function PostRawToChannel() {
-    }
-    PostRawToChannel.prototype.createResponse = function () { };
-    PostRawToChannel.prototype.getTypeName = function () { return "PostRawToChannel"; };
-    return PostRawToChannel;
-}());
-exports.PostRawToChannel = PostRawToChannel;
-var PostChatToChannel = (function () {
-    function PostChatToChannel() {
-    }
-    PostChatToChannel.prototype.createResponse = function () { return new ChatMessage(); };
-    PostChatToChannel.prototype.getTypeName = function () { return "PostChatToChannel"; };
-    return PostChatToChannel;
-}());
-exports.PostChatToChannel = PostChatToChannel;
-var GetChatHistory = (function () {
-    function GetChatHistory() {
-    }
-    GetChatHistory.prototype.createResponse = function () { return new GetChatHistoryResponse(); };
-    GetChatHistory.prototype.getTypeName = function () { return "GetChatHistory"; };
-    return GetChatHistory;
-}());
-exports.GetChatHistory = GetChatHistory;
-var ClearChatHistory = (function () {
-    function ClearChatHistory() {
-    }
-    ClearChatHistory.prototype.createResponse = function () { };
-    ClearChatHistory.prototype.getTypeName = function () { return "ClearChatHistory"; };
-    return ClearChatHistory;
-}());
-exports.ClearChatHistory = ClearChatHistory;
-var ResetServerEvents = (function () {
-    function ResetServerEvents() {
-    }
-    ResetServerEvents.prototype.createResponse = function () { };
-    ResetServerEvents.prototype.getTypeName = function () { return "ResetServerEvents"; };
-    return ResetServerEvents;
-}());
-exports.ResetServerEvents = ResetServerEvents;
-var PostObjectToChannel = (function () {
-    function PostObjectToChannel() {
-    }
-    PostObjectToChannel.prototype.createResponse = function () { };
-    PostObjectToChannel.prototype.getTypeName = function () { return "PostObjectToChannel"; };
-    return PostObjectToChannel;
-}());
-exports.PostObjectToChannel = PostObjectToChannel;
-var GetUserDetails = (function () {
-    function GetUserDetails() {
-    }
-    GetUserDetails.prototype.createResponse = function () { return new GetUserDetailsResponse(); };
-    GetUserDetails.prototype.getTypeName = function () { return "GetUserDetails"; };
-    return GetUserDetails;
-}());
-exports.GetUserDetails = GetUserDetails;
-var Authenticate = (function () {
-    function Authenticate() {
-    }
-    Authenticate.prototype.createResponse = function () { return new AuthenticateResponse(); };
-    Authenticate.prototype.getTypeName = function () { return "Authenticate"; };
-    return Authenticate;
-}());
-exports.Authenticate = Authenticate;
-var AssignRoles = (function () {
-    function AssignRoles() {
-    }
-    AssignRoles.prototype.createResponse = function () { return new AssignRolesResponse(); };
-    AssignRoles.prototype.getTypeName = function () { return "AssignRoles"; };
-    return AssignRoles;
-}());
-exports.AssignRoles = AssignRoles;
-var UnAssignRoles = (function () {
-    function UnAssignRoles() {
-    }
-    UnAssignRoles.prototype.createResponse = function () { return new UnAssignRolesResponse(); };
-    UnAssignRoles.prototype.getTypeName = function () { return "UnAssignRoles"; };
-    return UnAssignRoles;
-}());
-exports.UnAssignRoles = UnAssignRoles;
+$("#btnChange").onclick = startListening;
+$$("#baseUrl,#channel").forEach(function (x) { return x.onkeydown = function (e) { return e.keyCode == 13 ? startListening() : null; }; });
+$("#btnSendChat").onclick = sendChat;
+$("#txtChat").onkeydown = function (e) { return e.keyCode == 13 ? sendChat() : null; };
+$("#rawOptions").onchange = function (e) { $("#txtRaw").value = this.value; };
+$("#btnSendRaw").onclick = sendRaw;
+$("#txtRaw").onkeydown = function (e) { return e.keyCode == 13 ? sendRaw() : null; };
 
 
 /***/ })

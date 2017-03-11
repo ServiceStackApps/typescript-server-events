@@ -73,6 +73,14 @@ const startListening = () => {
 startListening();
 
 const sendChat = () => {
+    let request = new PostChatToChannel();
+    request.from = sub.id;
+    request.channel = CHANNEL;    
+    request.selector = "cmd.chat";
+    request.message = $("#txtChat").value;
+    client.serviceClient.post(request);
+};
+const sendRaw = () => {
     var parts = splitOnFirst($("#txtRaw").value, " ");
     if (!parts[0].trim()) return;
     let request = new PostRawToChannel();
@@ -82,14 +90,6 @@ const sendChat = () => {
     request.message = parts.length == 2 ? parts[1].trim() : null;
     client.serviceClient.post(request);
 };
-const sendRaw = () => {
-    let request = new PostChatToChannel();
-    request.from = sub.id;
-    request.channel = CHANNEL;    
-    request.selector = "cmd.chat";
-    request.message = $("#txtChat").value;
-    client.serviceClient.post(request);
-};
 
 $("#btnChange").onclick = startListening;
 $$("#baseUrl,#channel").forEach(x => x.onkeydown = e => e.keyCode == 13 ? startListening() : null);
@@ -97,4 +97,4 @@ $("#btnSendChat").onclick = sendChat;
 $("#txtChat").onkeydown = e => e.keyCode == 13 ? sendChat() : null;
 $("#rawOptions").onchange = function(e) { $("#txtRaw").value = this.value; };
 $("#btnSendRaw").onclick = sendRaw;
-$("#txtChat").onkeydown = e => e.keyCode == 13 ? sendRaw() : null;
+$("#txtRaw").onkeydown = e => e.keyCode == 13 ? sendRaw() : null;
