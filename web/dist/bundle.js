@@ -3485,11 +3485,11 @@ var dtos_1 = __webpack_require__(9);
 var CHANNEL = "";
 var BASEURL = "";
 var MESSAGES = {};
+var sub = null;
 var $ = function (sel) { return document.querySelector(sel); };
 var $$ = function (sel) { return document.querySelectorAll(sel); };
 var $msgs = $("#messages > div");
 var $users = $("#users > div");
-var sub = null;
 var addMessage = function (x) {
     return addMessageHtml("<div><b>" + x.selector + "</b> <span class=\"json\" title=" + x.json + ">" + x.json + "</span></div>");
 };

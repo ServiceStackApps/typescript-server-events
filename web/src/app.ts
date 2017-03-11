@@ -5,23 +5,17 @@ import {
     ServerEventCommand,
     splitOnFirst,
 } from "servicestack-client";
-
-import {
-    PostChatToChannel,
-    PostRawToChannel
-} from "./dtos";
+import { PostChatToChannel, PostRawToChannel } from "./dtos";
 
 var CHANNEL = "";
 var BASEURL = "";
 var MESSAGES = {};
+var sub:ServerEventConnect = null;
 
 const $ = sel => document.querySelector(sel);
 const $$ = sel => document.querySelectorAll(sel);
-
 const $msgs = $("#messages > div") as HTMLDivElement;
 const $users = $("#users > div") as HTMLDivElement;
-
-var sub:ServerEventConnect = null;
 
 const addMessage = (x:ServerEventMessage) => 
     addMessageHtml(`<div><b>${x.selector}</b> <span class="json" title=${x.json}>${x.json}</span></div>`);
@@ -50,11 +44,9 @@ const refreshUsers = async () => {
 const startListening = () => {
     BASEURL = $("#baseUrl").value;
     CHANNEL = $("#channel").value;
-    if (client != null)
-        client.stop();
+    if (client != null) client.stop();
 
     console.log(`Connecting to ${BASEURL} on channel ${CHANNEL}`);
-    
     client = new ServerEventsClient(BASEURL, [CHANNEL], {
         handlers: {
             onConnect: (e:ServerEventConnect) => {
