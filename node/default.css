@@ -1,0 +1,73 @@
+body, table, td, h3 {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100%;
+}
+h3 {
+    padding: 10px 0;
+    font-weight: normal;
+    text-align: center;
+}
+table {
+    border-collapse: collapse;
+    margin: auto;
+    height: 100%;
+    background: #fff;
+}
+td {
+    vertical-align: top;
+    padding: 15px;
+}
+#info {
+    background: #f1f1f1;
+    width: 240px;
+}
+input, select {
+    width: 100%;
+    margin: 0 0 5px 0;
+    padding: 2px 5px;
+    font-size: 16px;
+}
+select {
+    font-size: 12px;    
+}
+button {
+    margin: 0 0 10px 0;
+}
+#channels, #send {
+    text-align: center;
+}
+#channels b {
+    display: block;
+    font-weight: normal;
+    background: #888;
+    color: #fff;
+}
+#messages > div {
+    font-size: 12px;
+    width: 800px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+#users b, #users i {
+    display: block;
+    font-style: normal;
+    width: auto;
+}
+#users br {
+    clear: both;
+}
+#users img {
+    float: left;
+    padding: 0 5px 5px 0;
+    width: 48px;
+}
+#messages .json {
+    color: #666;
+}
+.error {
+    color: red;
+}
