@@ -21,7 +21,7 @@ var syncState = function () {
     });
 };
 startListening();
-setInterval(syncState, 200);
+setInterval(syncState, 100);
 var sendChat = function () { return client.get("/chat", { message: $("#txtChat").value }); };
 var sendRaw = function () { return client.get("/raw", { message: $("#txtRaw").value }); };
 $("#btnChange").onclick = startListening;
@@ -30,5 +30,5 @@ $("#btnSendChat").onclick = sendChat;
 $("#txtChat").onkeydown = function (e) { return e.keyCode == 13 ? sendChat() : null; };
 $("#rawOptions").onchange = function (e) { $("#txtRaw").value = this.value; };
 $("#btnSendRaw").onclick = sendRaw;
-$("#txtChat").onkeydown = function (e) { return e.keyCode == 13 ? sendRaw() : null; };
+$("#txtRaw").onkeydown = function (e) { return e.keyCode == 13 ? sendRaw() : null; };
 //# sourceMappingURL=app.js.map

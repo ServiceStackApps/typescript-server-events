@@ -73,7 +73,7 @@
 "use strict";
 /* WEBPACK VAR INJECTION */(function(Buffer) {
 Object.defineProperty(exports, "__esModule", { value: true });
-__webpack_require__(5);
+__webpack_require__(3);
 var ResponseStatus = (function () {
     function ResponseStatus() {
     }
@@ -202,7 +202,7 @@ var ServerEventsClient = (function () {
         headers.set("Content-Type", "text/plain");
         if (op === "cmd") {
             if (cmd === "onConnect") {
-                this.connectionInfo = body;
+                this.connectionInfo = mergedBody;
                 if (typeof body.heartbeatIntervalMs == "string")
                     this.connectionInfo.heartbeatIntervalMs = parseInt(body.heartbeatIntervalMs);
                 if (typeof body.idleTimeoutMs == "string")
@@ -582,6 +582,9 @@ var JsonServiceClient = (function () {
         this.userName = userName;
         this.password = password;
     };
+    JsonServiceClient.prototype.setBearerToken = function (token) {
+        this.headers.set("Authorization", "Bearer " + token);
+    };
     JsonServiceClient.prototype.get = function (request, args) {
         return this.send(HttpMethods.Get, request, args);
     };
@@ -701,7 +704,7 @@ exports.JsonServiceClient = JsonServiceClient;
 var createErrorResponse = function (errorCode, message) {
     var error = new ErrorResponse();
     error.responseStatus = new ResponseStatus();
-    error.responseStatus.errorCode = errorCode;
+    error.responseStatus.errorCode = errorCode && errorCode.toString();
     error.responseStatus.message = message;
     return error;
 };
@@ -1049,8 +1052,8 @@ function fromByteArray (uint8) {
 
 
 var base64 = __webpack_require__(1)
-var ieee754 = __webpack_require__(3)
-var isArray = __webpack_require__(4)
+var ieee754 = __webpack_require__(4)
+var isArray = __webpack_require__(5)
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -2832,6 +2835,19 @@ function isnan (val) {
 
 /***/ }),
 /* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// the whatwg-fetch polyfill installs the fetch() function
+// on the global object (window or self)
+//
+// Return that as the export for use in Webpack, Browserify etc.
+__webpack_require__(7);
+var globalObj = typeof self !== 'undefined' && self || this;
+module.exports = globalObj.fetch.bind(globalObj);
+
+
+/***/ }),
+/* 4 */
 /***/ (function(module, exports) {
 
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -2921,7 +2937,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports) {
 
 var toString = {}.toString;
@@ -2929,18 +2945,6 @@ var toString = {}.toString;
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
-
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// the whatwg-fetch polyfill installs the fetch() function
-// on the global object (window or self)
-//
-// Return that as the export for use in Webpack, Browserify etc.
-__webpack_require__(7);
-module.exports = self.fetch.bind(self);
 
 
 /***/ }),

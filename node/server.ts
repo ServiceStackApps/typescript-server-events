@@ -55,10 +55,7 @@ const HANDLERS: { [index:string]: ((req:http.IncomingMessage, res:http.ServerRes
         client = new ServerEventsClient(BASEURL, [CHANNEL], {
             handlers: {
                 onConnect: (e:ServerEventConnect) => {
-                    sub = e;
-                    e.selector = "onConnect";
-                    e.json = JSON.stringify(e);
-                    refresh(e);
+                    refresh(sub = e);
                 },
                 onJoin: refresh,
                 onLeave: refresh,

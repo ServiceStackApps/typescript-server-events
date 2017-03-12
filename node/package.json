@@ -10,7 +10,7 @@
   "author": "ServiceStack",
   "dependencies": {
     "eventsource": "^0.2.2",
-    "servicestack-client": "^0.0.27"
+    "servicestack-client": "0.0.28"
   },
   "devDependencies": {
     "@types/node": "^7.0.8",
