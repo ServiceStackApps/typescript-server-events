@@ -37,16 +37,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var servicestack_client_1 = require("servicestack-client");
+var dtos_1 = require("./dtos");
 var CHANNEL = "";
 var BASEURL = "";
 var MESSAGES = {};
+var sub = null;
 var $ = function (sel) { return document.querySelector(sel); };
 var $$ = function (sel) { return document.querySelectorAll(sel); };
 var $msgs = $("#messages > div");
 var $users = $("#users > div");
-var sub = null;
 var addMessage = function (x) {
-    return addMessageHtml("<div><b>" + x.selector + "</b> <span>" + x.json + "</span></div>");
+    return addMessageHtml("<div><b>" + x.selector + "</b> <span class=\"json\" title=" + x.json + ">" + x.json + "</span></div>");
 };
 var addMessageHtml = function (html) {
     return (MESSAGES[CHANNEL] || (MESSAGES[CHANNEL] = [])).push(html);
@@ -67,7 +68,7 @@ var refreshUsers = function () { return __awaiter(_this, void 0, void 0, functio
             case 0: return [4 /*yield*/, client.getChannelSubscribers()];
             case 1:
                 users = _a.sent();
-                users.sort(function (x, y) { return x.userId.localeCompare(y.userId); });
+                users.sort(function (x, y) { return y.userId.localeCompare(x.userId); });
                 usersMap = {};
                 userIds = Object.keys(usersMap);
                 html = users.map(function (x) {
@@ -106,6 +107,30 @@ var startListening = function () {
     }).start();
 };
 startListening();
+var sendChat = function () {
+    var request = new dtos_1.PostChatToChannel();
+    request.from = sub.id;
+    request.channel = CHANNEL;
+    request.selector = "cmd.chat";
+    request.message = $("#txtChat").value;
+    client.serviceClient.post(request);
+};
+var sendRaw = function () {
+    var parts = servicestack_client_1.splitOnFirst($("#txtRaw").value, " ");
+    if (!parts[0].trim())
+        return;
+    var request = new dtos_1.PostRawToChannel();
+    request.from = sub.id;
+    request.channel = CHANNEL;
+    request.selector = parts[0].trim();
+    request.message = parts.length == 2 ? parts[1].trim() : null;
+    client.serviceClient.post(request);
+};
 $("#btnChange").onclick = startListening;
-$$("input").forEach(function (x) { return x.onkeydown = function (e) { return e.keyCode == 13 ? startListening() : null; }; });
+$$("#baseUrl,#channel").forEach(function (x) { return x.onkeydown = function (e) { return e.keyCode == 13 ? startListening() : null; }; });
+$("#btnSendChat").onclick = sendChat;
+$("#txtChat").onkeydown = function (e) { return e.keyCode == 13 ? sendChat() : null; };
+$("#rawOptions").onchange = function (e) { $("#txtRaw").value = this.value; };
+$("#btnSendRaw").onclick = sendRaw;
+$("#txtRaw").onkeydown = function (e) { return e.keyCode == 13 ? sendRaw() : null; };
 //# sourceMappingURL=app.js.map

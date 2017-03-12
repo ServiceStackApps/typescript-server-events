@@ -14,6 +14,6 @@
     "webpack": "^2.2.1"
   },
   "dependencies": {
-    "servicestack-client": "^0.0.27"
+    "servicestack-client": "0.0.28"
   }
 }
