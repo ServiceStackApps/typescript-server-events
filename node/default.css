@@ -56,6 +56,7 @@ button {
     display: block;
     font-style: normal;
     width: auto;
+    color: #666;
 }
 #users br {
     clear: both;
@@ -71,6 +72,6 @@ button {
 .error {
     color: red;
 }
-.me {
-    background: #ffc;
+#users .me b, #users .me i {
+    color: #43A047;
 }
