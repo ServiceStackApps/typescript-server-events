@@ -84,8 +84,9 @@ export default class App extends Component {
   }
 
   addMessageJsx = (jsx) => {
-      var messages = [jsx, ...this.state.messages];
-      this.setState({ messages, dataSource: ds.cloneWithRows(messages) })
+      var messages = this.state.messages;
+      (messages[this.state.channel] || (messages[this.state.channel] = [])).push(jsx);
+      this.setState({ messages, dataSource: ds.cloneWithRows(messages[this.state.channel]) })
   }
 
   refreshUsers = async () =>  {
@@ -137,7 +138,7 @@ export default class App extends Component {
         </View>
         <View style={{width: "65%", height: "100%", backgroundColor: "#fff", paddingTop: 0}}>
           <Text style={styles.h2}>messages</Text>
-          {this.state.messages.length > 0
+          {(this.state.messages[this.state.channel] || []).length > 0
             ? (<ListView dataSource={this.state.dataSource} style={{ height: 100 }}
                          renderRow={x => <View style={i++ % 2 == 0 ? styles.row : styles.altRow}>{x}</View>} />)
             : null}
