@@ -88,10 +88,7 @@ var startListening = function () {
     client = new servicestack_client_1.ServerEventsClient(BASEURL, [CHANNEL], {
         handlers: {
             onConnect: function (e) {
-                sub = e;
-                e.selector = "onConnect";
-                e.json = JSON.stringify(e);
-                refresh(e);
+                refresh(sub = e);
             },
             onJoin: refresh,
             onLeave: refresh,
