@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "react-native-fetch-blob": "^0.10.2"
+  }
+}
