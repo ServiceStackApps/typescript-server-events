@@ -20,8 +20,8 @@ var syncState = function () {
         $msgs.innerHTML = state.messages.reverse().join('');
     });
 };
-startListening();
 setInterval(syncState, 100);
+startListening();
 var sendChat = function () { return client.get("/chat", { message: $("#txtChat").value }); };
 var sendRaw = function () { return client.get("/raw", { message: $("#txtRaw").value }); };
 $("#btnChange").onclick = startListening;

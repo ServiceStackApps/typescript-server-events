@@ -1,32 +1,31 @@
 # TypeScript Service Client and Server Events Apps
 
-This project contains a number of self-contained TypeScript and JavaScript projects showcasing the different JavaScript runtime environments that can leverage 
-[servicestack-client](https://github.com/ServiceStack/servicestack-client) 
-to enable typed end-to-end API calls using the generic `JsonServiceClient` and the generated 
+This project contains a number of self-contained TypeScript and JavaScript projects showcasing the different JavaScript runtime environments that can leverage the isomorphic and multi-platform
+[servicestack-client](https://github.com/ServiceStack/servicestack-client) library in Web and React Native 
+Mobile Apps as well as node.js server and test projects to enable effortlesss typed end-to-end API calls using the generic `JsonServiceClient` and generated 
 [TypeScript Add ServiceStack Reference](http://docs.servicestack.net/typescript-add-servicestack-reference) DTOs as well as easily handling real-time notifications using 
-[TypeScript ServerEventsClient](http://docs.servicestack.net/typescript-server-events-client) 
-with minimal effort.
+[TypeScript ServerEventsClient](http://docs.servicestack.net/typescript-server-events-client).
+
+![](https://raw.githubusercontent.com/ServiceStack/Assets/ca79950600197dc7da1f3e1db7877fff427523f9/img/livedemos/typescript-serverevents/typescript-server-events.png)
 
 The [servicestack-client](https://github.com/ServiceStack/servicestack-client) npm 
-package contains an isomorphic library that can be used in either JavaScript or TypeScript Single Page Web Apps, node.js server projects as well as React Native Mobile Apps. It closely follows the design of the 
+package can be used in either TypeScript or pure JavaScript projects and closely follows the design of the 
 [C#/.NET JsonServiceClient](http://docs.servicestack.net/csharp-client) and C#
 [ServerEventsClient](http://docs.servicestack.net/csharp-server-events-client) 
-in idiomatic TypeScript to maximize **knowledge sharing** and minimize native **porting efforts** between the different languages [Add ServiceStack Reference supports](http://docs.servicestack.net/add-servicestack-reference#supported-languages).
+in idiomatic JavaScript to maximize **knowledge sharing** and minimize native **porting efforts** between the different languages and platforms [ServiceStack References supports](http://docs.servicestack.net/add-servicestack-reference#supported-languages).
 
-The examples in this project below explore the simplicity, type benefits and value provided by the 
-`JsonServiceClient` and `ServerEventsClient` which enables 100% code sharing of client logic across
-JavaScript's most popular environments.
+The examples below explore the type benefits and value provided by the `JsonServiceClient` and `ServerEventsClient` which enables 100% code sharing of client logic across JavaScript's most popular environments.
 
 ## Web App
 
 The [Web Example App](https://github.com/ServiceStackApps/typescript-server-events/tree/master/web)
-was built with in [>100 lines of application code](https://github.com/ServiceStackApps/typescript-server-events/blob/master/web/src/app.ts)
+contains less than [>100 lines of application code](https://github.com/ServiceStackApps/typescript-server-events/blob/master/web/src/app.ts)
 and uses no external runtime library dependencies other than 
 [servicestack-client](https://github.com/ServiceStack/servicestack-client) for its functional Web App
 that can connect to any ServerEvents-enabled ServiceStack instance (with CORS) to keep a real-time log of all
-commands sent to the subscribed channel with a synchronized Live list of other Users that are also currently subscribed to the channel.
+messages sent to the subscribed channel whilst maintaining a synchronized Live list of Users currently subscribed to the same channel.
 
-The Web App is spread across the 4 files below with all functionality maintained in **app.ts**:
+The Web App is made up of the 4 files below with all functionality maintained in **app.ts**:
 
  - [app.ts](https://github.com/ServiceStackApps/typescript-server-events/blob/master/web/src/app.ts) - Entire App Logic
  - [dtos.ts](https://github.com/ServiceStackApps/typescript-server-events/blob/master/web/src/dtos.ts) - Server generated DTOs from [chat.servicestack.net/types/typescript](http://chat.servicestack.net/types/typescript)
@@ -37,8 +36,7 @@ The Web App is spread across the 4 files below with all functionality maintained
 
 ### Web Server Events Configuration
 
-The heart of the App that's driving all its functionality is the Server Events subscription contained
-in these few lines below:
+The heart of the App that's driving all its functionality is the Server Events subscription below:
 
 ```ts
 const startListening = () => {
@@ -70,12 +68,12 @@ const startListening = () => {
 
 ### Handler implementations
 
-Essentially declarative configuration hooking up different Server Events to the `refresh` handlers 
-below which adds the command message to the channels `MESSAGES` list, updates the UI then refreshes the
-`users` list by calling the built-in `client.getChannelSubscribers()`:
+Essentially just declarative configuration hooking up different Server Events to the handlers below which 
+adds any commands and messages to the channels `MESSAGES` list, updates the UI then refreshes the `users` list by calling the built-in `client.getChannelSubscribers()` API:
 
 ```ts
 const $ = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
 const $msgs = $("#messages > div") as HTMLDivElement;
 const $users = $("#users > div") as HTMLDivElement;
 
@@ -107,34 +105,34 @@ const refreshMessages = () => $msgs.innerHTML= (MESSAGES[CHANNEL]||[]).reverse()
 
 ### Changing Server Subscription
 
-To change the server and channel we want to connect to we just need to `startListening()` again
-when the **change** button is clicked:
+To change the server and channel we want to connect to we just call `startListening()` again
+when the **change** button is clicked or **Enter** key is pressed:
 
 ```csharp
 $("#btnChange").onclick = startListening;
+$$("#baseUrl,#channel").forEach(x => x.onkeydown = e => e.keyCode == 13 ? startListening() : null);
 ```
 
-Which will close the previous subscription and start a new one at the new server and channel. 
+Which will close the previous subscription and start a new one on the new server and channel. 
 You can test connecting to another server by connecting to the .NET Core version of Chat at [chat.netcore.io](http://chat.netcore.io).
 
 ### Calling Typed Web Services
 
-The Web App also sends messages 
+The Web App also makes Typed API Requests to send messages and commands to other users in the channels.
 
-Download the TypeScript DTOs from the [chat.servicestack.net](http://chat.servicestack.net) at 
-[/types/typescript](http://docs.servicestack.net/add-servicestack-reference#language-paths)
+To make Typed API Requests we need to first download [chat.servicestack.net](http://chat.servicestack.net) TypeScript DTOs at [/types/typescript](http://docs.servicestack.net/add-servicestack-reference#language-paths):
 
     curl http://chat.servicestack.net/types/typescript > dtos.ts
 
-Then once their downloaded we can reference the Request DTO's of the Services we want to call with:
+Once downloaded we can import the Request DTO's of the Services we want to call:
 
 ```ts
 import { PostChatToChannel, PostRawToChannel } from "./dtos";
 ```
 
-Which just like all 
+Then just like all other supported
 [ServiceStack Reference languages](http://docs.servicestack.net/add-servicestack-reference#supported-languages)
-we can populate and send with a generic `JsonServiceClient`, an instance of which is also pre-configured with the same `{baseUrl}` available at `client.serviceClient`, e.g:
+we just need to send a populated Request DTO using a generic `JsonServiceClient` - an instance of which is pre-configured with the same `{baseUrl}` at `client.serviceClient`:
 
 ```ts
 const sendChat = () => {
@@ -147,7 +145,7 @@ const sendChat = () => {
 };
 ```
 
-All that's left is sending the chat message which we can do by pressing the **chat** button or hitting enter:
+Which is called each time the **chat** button is pressed or **Enter** key is pressed:
 
 ```ts
 $("#btnSendChat").onclick = sendChat;
@@ -156,32 +154,33 @@ $("#txtChat").onkeydown = e => e.keyCode == 13 ? sendChat() : null;
 
 ### Running Web App
 
-To see it in action we just need to launch a static Web Server in the `/web` directory, e.g:
+To see our App in action we just need to launch a static Web Server in the `/web` directory which we 
+can use the command-line [http-server](https://www.npmjs.com/package/http-server) to do by running:
 
     cd web
     http-server
 
-Which will launch a HTTP Server at `http://localhost:8080/` which you can play with in your browser.
+To launch a HTTP Server at `http://localhost:8080/` which you can now play with in your browser.
 
 ### Making changes to Web App
 
-The vibrant ecosystem surrounding npm makes it the best place to develop Single Page Apps with world class
-tools like [Babel](https://babeljs.io/) which you can run in a command-line with:
+The vibrant ecosystem surrounding npm makes it the best place to develop Single Page Apps with best-of-class
+tools like [Babel](https://babeljs.io/) which you can run in the command-line with:
 
     npm run watch
 
-That will launch a background watcher to monitor your source files for changes and **on save** automatically
-pipe them through the TypeScript compiler and bundle your app in `/dist/bundle.js` which
-is the only .js source file our app needs to reference and reload with **F5** to see any changes.
+This will launch a background watcher to monitor your source files for changes and **on save** automatically
+pipe them through the TypeScript compiler and bundle its output in `/dist/bundle.js` which
+is the only .js source file our app references, that we can reload with **F5** to see any changes.
 
 ## node.js Server App
 
 The [/node](https://github.com/ServiceStackApps/typescript-server-events/tree/master/node) server.js app
-has exactly the same functionality as the Web App except instead of using **servicestack-client** to connect 
-to [chat.servicestack.net](http://chat.servicestack.net) Server Events stream on the client, all
-connections are made in node.js and only the server state is sent to the client to render its UI.
+has the same functionality as the Web App except instead of connecting to the [chat.servicestack.net](http://chat.servicestack.net) Events stream on the client, all connections are made in node.js and its 
+only the server state that's sent to the client which uses it to render the UI.
 
-As the functionality of the app remains the same we're able to reuse the existing DTOs, .html and .css:
+As the functionality of the app remains the same we're able to reuse the existing DTOs, .html and .css 
+from the Web App:
 
  - [dtos.ts](https://github.com/ServiceStackApps/typescript-server-events/blob/master/node/src/dtos.ts)
  - [index.html](https://github.com/ServiceStackApps/typescript-server-events/blob/master/node/index.html)
@@ -189,22 +188,22 @@ As the functionality of the app remains the same we're able to reuse the existin
 
 ![](https://raw.githubusercontent.com/ServiceStack/Assets/master/img/livedemos/typescript-serverevents/node.png)
 
-The difference is in the App's logic which is now split into 2 with the node.js `server.ts` now containing 
-most of the App's functionality whilst the `app.ts` relegated to periodically updating the UI with the
-node.js server state:
+The difference is in the App's logic which is now split into 2 files with the node.js `server.ts` now 
+containing most of the App's functionality whilst the `app.ts` relegated to periodically updating the UI 
+with the node.js server state:
 
  - [server.ts](https://github.com/ServiceStackApps/typescript-server-events/blob/master/node/server.ts) - maintain all client and server events connection to [chat.servicestack.net](http://chat.servicestack.net)
  - [app.ts](https://github.com/ServiceStackApps/typescript-server-events/blob/master/node/src/app.ts) - periodically render node.js state to HTML UI
 
 As our goal is to maintain the minimal dependencies in each App, the implementation of `server.ts` is
-written against a bare-bones node `http.createServer()` without utilizing a server web framework which 
-makes the implementation more verbose but also easier to understand as we're not relying on any hidden 
-functionality enabled in a server web framework.
+written against node.js's bare-bones `http.createServer()` directly without utilizing any external web 
+framework which makes the implementation more verbose but also easier to understand as it's not relying 
+on any hidden functionality contained in a 3rd Party server web framework.
 
-### Enable Server Events
+### Enable Server Events in node.js
 
-A change we need to make given our App is now running in node.js instead of in a browser is to import the 
-[eventsource](https://www.npmjs.com/package/eventsource) pure JavaScript polyfill to provide an `EventSource` implementation in node.js which we can make available in the ``global`` scope in TypeScript with:
+A change we need to make given our App is now running in node.js instead of a browser is to import the 
+pure JavaScript [eventsource](https://www.npmjs.com/package/eventsource) polyfill to provide an `EventSource` implementation in node.js which we can import in the ``global`` scope in TypeScript with:
 
 ```ts
 declare var global:any;
@@ -213,9 +212,9 @@ global.EventSource = require('eventsource');
 
 ### Node.js Server Events Configuration
 
-Whilst the environment is different the Server Events configuration remains largely the same, but instead of 
+Whilst the environment is different the Server Events configuration remains mostly the same, but instead of 
 retrieving the connection info from Text boxes in a Web Page, it's instead retrieved from the queryString
-passed when the client App calls our `/listen` handler, e.g:
+passed when the client App calls the `/listen` handler, e.g:
 
 ```ts
 "/listen": (req,res) => {
@@ -250,7 +249,7 @@ passed when the client App calls our `/listen` handler, e.g:
 ### Node.js Handler implementation
 
 The handler implementations are more or less the same as the Web App albeit a bit simpler as it just needs
-to capture the Server Event messages and not concern itself with updating the UI:
+to capture the Server Event messages without needing to concern itself with updating the UI:
 
 ```ts
 var MESSAGES = [];
@@ -281,7 +280,7 @@ const addMessageHtml = (html:string) =>
 ### Syncing the UI with Server state in node.js
 
 Syncing and rendering the UI is now the primary job of our clients `app.ts` which just polls the servers
-`/state` route every 100ms and injects it into the HTML UI:
+`/state` every 100ms and inject it into the HTML UI:
 
 ```ts
 const syncState = () => {
@@ -298,7 +297,7 @@ const syncState = () => {
 setInterval(syncState, 100);
 ```
 
-The `/state` handler being just dumping the state and collections to JSON:
+The `/state` handler just dumps our internal node.js state and collections to JSON:
 
 ```ts
 "/state": (req, res) => {
@@ -316,8 +315,8 @@ The `/state` handler being just dumping the state and collections to JSON:
 
 ### Calling Typed Web Services in node.js
 
-As we can expect making Typed API calls in node.js is the same as in a browser except the user data
-comes from a queryString instead of a HTML UI: 
+As we can expect, making Typed API calls in node.js is the same as in a browser except the user data
+comes from a queryString instead of HTML Text INPUT fields: 
 
 ```ts
 "/chat": (req,res) => {
@@ -332,9 +331,8 @@ comes from a queryString instead of a HTML UI:
 },
 ```
 
-Back in client `app.ts` land our event handlers are exactly the same, the difference is in `sendChat()` 
-where instead of making the API call itself it tells the node `server.ts` to do it by calling the `/chat`
-handler:
+Back in our client `app.ts`, the event handlers remain exactly the same, the difference is in `sendChat()` implementation where instead of sending the Chat message itself, it tells the node `server.ts` to do it 
+by calling the local `/chat` service:
 
 ```ts
 const sendChat = () => client.get("/chat", { message: $("#txtChat").value });
@@ -350,16 +348,16 @@ To run our node app we need to launch the compiled `server.js` App with:
     cd node
     node server.js
 
-Which also launches our HTTP Server at `http://localhost:8080/`.
+Which launches our node.js HTTP Server at `http://localhost:8080/`.
 
 ### Making changes to Web App
 
-Since there's now a client and server component, we still need to run **Babel** to monitor our source files
-for changes and regenerate client `/dist/bundle.js`:
+Since there's now a client and server component, we still need to run **Babel** to monitor our app.ts source 
+file for changes to regenerate the App's `/dist/bundle.js`:
 
     npm run watch
 
-But if we've a change to `server.ts` we need to compile it by running:
+But if we've made a change to `server.ts` we need to compile it by running:
 
     tsc
 

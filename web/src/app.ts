@@ -13,8 +13,8 @@ var MESSAGES = {};
 var sub:ServerEventConnect = null;
 var client:ServerEventsClient = null;
 
-const $$ = sel => document.querySelectorAll(sel);
 const $  = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
 const $msgs = $("#messages > div") as HTMLDivElement;
 const $users = $("#users > div") as HTMLDivElement;
 
