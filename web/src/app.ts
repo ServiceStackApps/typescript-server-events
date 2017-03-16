@@ -11,35 +11,37 @@ var CHANNEL = "";
 var BASEURL = "";
 var MESSAGES = {};
 var sub:ServerEventConnect = null;
+var client:ServerEventsClient = null;
 
-const $ = sel => document.querySelector(sel);
 const $$ = sel => document.querySelectorAll(sel);
+const $  = sel => document.querySelector(sel);
 const $msgs = $("#messages > div") as HTMLDivElement;
 const $users = $("#users > div") as HTMLDivElement;
 
-const addMessage = (x:ServerEventMessage) => 
-    addMessageHtml(`<div><b>${x.selector}</b> <span class="json" title=${x.json}>${x.json}</span></div>`);
-const addMessageHtml = (html:string) => 
-    (MESSAGES[CHANNEL] || (MESSAGES[CHANNEL] = [])).push(html);
-const refreshMessages = () => 
-    $msgs.innerHTML = (MESSAGES[CHANNEL] || []).reverse().join('');
 const refresh = (e:ServerEventMessage) => {
     addMessage(e); 
     refreshMessages();
     refreshUsers();
 }; 
 
-var client:ServerEventsClient = null;
 const refreshUsers = async () => {
     var users = await client.getChannelSubscribers();
     users.sort((x,y) => y.userId.localeCompare(x.userId));
-
     var usersMap = {};
     var userIds = Object.keys(usersMap);
     var html = users.map(x => 
-        `<div class="${x.userId == sub.userId ? 'me' : ''}"><img src="${x.profileUrl}" /><b>@${x.displayName}</b><i>#${x.userId}</i><br/></div>`);
+        `<div class="${x.userId == sub.userId ? 'me' : ''}">
+            <img src="${x.profileUrl}" /><b>@${x.displayName}</b><i>#${x.userId}</i><br/>
+        </div>`);
     $users.innerHTML = html.join('');
 };
+
+const addMessage = (x:ServerEventMessage) => addMessageHtml(
+    `<div><b>${x.selector}</b> 
+        <span class="json" title=${x.json}>${x.json}</span>
+    </div>`);
+const addMessageHtml = (html:string) =>(MESSAGES[CHANNEL] || (MESSAGES[CHANNEL] = [])).push(html);
+const refreshMessages = () => $msgs.innerHTML = (MESSAGES[CHANNEL] || []).reverse().join('');
 
 const startListening = () => {
     BASEURL = $("#baseUrl").value;
@@ -66,7 +68,6 @@ const startListening = () => {
         }
     }).start();
 }
-
 startListening();
 
 const sendChat = () => {

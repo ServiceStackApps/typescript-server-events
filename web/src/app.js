@@ -42,25 +42,16 @@ var CHANNEL = "";
 var BASEURL = "";
 var MESSAGES = {};
 var sub = null;
+var client = null;
 var $ = function (sel) { return document.querySelector(sel); };
 var $$ = function (sel) { return document.querySelectorAll(sel); };
 var $msgs = $("#messages > div");
 var $users = $("#users > div");
-var addMessage = function (x) {
-    return addMessageHtml("<div><b>" + x.selector + "</b> <span class=\"json\" title=" + x.json + ">" + x.json + "</span></div>");
-};
-var addMessageHtml = function (html) {
-    return (MESSAGES[CHANNEL] || (MESSAGES[CHANNEL] = [])).push(html);
-};
-var refreshMessages = function () {
-    return $msgs.innerHTML = (MESSAGES[CHANNEL] || []).reverse().join('');
-};
 var refresh = function (e) {
     addMessage(e);
     refreshMessages();
     refreshUsers();
 };
-var client = null;
 var refreshUsers = function () { return __awaiter(_this, void 0, void 0, function () {
     var users, usersMap, userIds, html;
     return __generator(this, function (_a) {
@@ -72,13 +63,16 @@ var refreshUsers = function () { return __awaiter(_this, void 0, void 0, functio
                 usersMap = {};
                 userIds = Object.keys(usersMap);
                 html = users.map(function (x) {
-                    return "<div class=\"" + (x.userId == sub.userId ? 'me' : '') + "\"><img src=\"" + x.profileUrl + "\" /><b>@" + x.displayName + "</b><i>#" + x.userId + "</i><br/></div>";
+                    return "<div class=\"" + (x.userId == sub.userId ? 'me' : '') + "\">\n            <img src=\"" + x.profileUrl + "\" /><b>@" + x.displayName + "</b><i>#" + x.userId + "</i><br/>\n        </div>";
                 });
                 $users.innerHTML = html.join('');
                 return [2 /*return*/];
         }
     });
 }); };
+var addMessage = function (x) { return addMessageHtml("<div><b>" + x.selector + "</b> \n        <span class=\"json\" title=" + x.json + ">" + x.json + "</span>\n    </div>"); };
+var addMessageHtml = function (html) { return (MESSAGES[CHANNEL] || (MESSAGES[CHANNEL] = [])).push(html); };
+var refreshMessages = function () { return $msgs.innerHTML = (MESSAGES[CHANNEL] || []).reverse().join(''); };
 var startListening = function () {
     BASEURL = $("#baseUrl").value;
     CHANNEL = $("#channel").value;
