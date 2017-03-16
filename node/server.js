@@ -48,12 +48,6 @@ var BASEURL = "";
 var sub = null;
 var MESSAGES = [];
 var USERS = [];
-var addMessage = function (x) {
-    return addMessageHtml("<div><b>" + x.selector + "</b> <span class=\"json\" title=" + x.json + ">" + x.json + "</span></div>");
-};
-var addMessageHtml = function (html) {
-    return (MESSAGES[CHANNEL] || (MESSAGES[CHANNEL] = [])).push(html);
-};
 var refresh = function (e) {
     addMessage(e);
     refreshUsers();
@@ -77,6 +71,12 @@ var refreshUsers = function () { return __awaiter(_this, void 0, void 0, functio
         }
     });
 }); };
+var addMessage = function (x) {
+    return addMessageHtml("<div><b>" + x.selector + "</b> <span class=\"json\" title=" + x.json + ">" + x.json + "</span></div>");
+};
+var addMessageHtml = function (html) {
+    return (MESSAGES[CHANNEL] || (MESSAGES[CHANNEL] = [])).push(html);
+};
 var HANDLERS = {
     "/": function (req, res) { return handleFile("/index.html", res); },
     "/listen": function (req, res) {

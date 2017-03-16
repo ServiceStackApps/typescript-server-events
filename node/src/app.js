@@ -14,7 +14,7 @@ var startListening = function () {
 var syncState = function () {
     client.get("/state").then(function (state) {
         var html = state.users.map(function (x) {
-            return "<div class=\"" + (x.userId == state.sub.userId ? 'me' : '') + "\"><img src=\"" + x.profileUrl + "\" /><b>@" + x.displayName + "</b><i>#" + x.userId + "</i><br/></div>";
+            return "<div class=\"" + (x.userId == state.sub.userId ? 'me' : '') + "\">\n                <img src=\"" + x.profileUrl + "\" /><b>@" + x.displayName + "</b><i>#" + x.userId + "</i><br/>\n            </div>";
         });
         $users.innerHTML = html.join('');
         $msgs.innerHTML = state.messages.reverse().join('');

@@ -20,10 +20,6 @@ var sub:ServerEventConnect = null;
 var MESSAGES = [];
 var USERS = [];
 
-const addMessage = (x:ServerEventMessage) => 
-    addMessageHtml(`<div><b>${x.selector}</b> <span class="json" title=${x.json}>${x.json}</span></div>`);
-const addMessageHtml = (html:string) => 
-    (MESSAGES[CHANNEL] || (MESSAGES[CHANNEL] = [])).push(html);
 const refresh = (e:ServerEventMessage) => {
     addMessage(e); 
     refreshUsers();
@@ -40,6 +36,10 @@ const refreshUsers = async () => {
         userId: x.userId
     }));
 };
+const addMessage = (x:ServerEventMessage) => 
+    addMessageHtml(`<div><b>${x.selector}</b> <span class="json" title=${x.json}>${x.json}</span></div>`);
+const addMessageHtml = (html:string) => 
+    (MESSAGES[CHANNEL] || (MESSAGES[CHANNEL] = [])).push(html);
 
 const HANDLERS: { [index:string]: ((req:http.IncomingMessage, res:http.ServerResponse) => void) } = {
     "/": (req, res) => handleFile("/index.html", res),
