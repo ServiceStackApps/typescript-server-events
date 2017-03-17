@@ -19,10 +19,9 @@ The examples below explore the type benefits and value provided by the `JsonServ
 ## Web App
 
 The [Web Example App](https://github.com/ServiceStackApps/typescript-server-events/tree/master/web)
-contains less than [>100 lines of application code](https://github.com/ServiceStackApps/typescript-server-events/blob/master/web/src/app.ts)
-and uses no external runtime library dependencies other than 
+built with less than [>100 lines of application code](https://github.com/ServiceStackApps/typescript-server-events/blob/master/web/src/app.ts) uses no external runtime library dependencies other than 
 [servicestack-client](https://github.com/ServiceStack/servicestack-client) for its functional Web App
-that can connect to any ServerEvents-enabled ServiceStack instance (with CORS) to keep a real-time log of all
+that can connect to any CORS and ServerEvents-enabled ServiceStack instance and keep a real-time log of all
 messages sent to the subscribed channel whilst maintaining a synchronized Live list of Users currently subscribed to the same channel.
 
 The Web App is made up of the 4 files below with all functionality maintained in **app.ts**:
