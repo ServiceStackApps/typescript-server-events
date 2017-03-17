@@ -8,11 +8,9 @@
   },
   "dependencies": {
     "events": "^1.1.1",
-    "eventsource": "^0.2.2",
     "react": "15.4.2",
     "react-native": "0.42.0",
     "react-native-event-source": "^1.0.0",
-    "react-native-eventsource": "^0.0.1",
     "servicestack-client": "^0.0.30",
     "typescript": "^2.2.1",
     "url": "^0.11.0"
