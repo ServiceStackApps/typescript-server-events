@@ -20,13 +20,8 @@ import {
   Alert,
 } from 'react-native';
 
-import {
-  ServerEventsClient 
-} from 'servicestack-client';
-
-import {
-  PostChatToChannel
-} from './dtos';
+import { ServerEventsClient } from 'servicestack-client';
+import { PostChatToChannel } from './dtos';
 
 const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 const dsUsers = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
@@ -68,8 +63,7 @@ export default class App extends Component {
       onException: e => {
         console.log('onException', e);
         this.addMessageJsx(<Text style={styles.error}>{e.message || e + ""}</Text>);
-      },
-      EventSource: EventSource
+      }
     }).start()
   }
 
@@ -116,9 +110,11 @@ export default class App extends Component {
       <View style={{flex: 1, flexDirection: 'row'}}>
         <View style={{width: "35%", height: "100%", backgroundColor: '#f1f1f1', paddingTop: 0}}>
           <Text style={styles.h2}>channel</Text>
-          <TextInput style={styles.textInput} defaultValue={this.state.baseUrl} autoCapitalize="none" placeholder="{baseUrl}" 
+          <TextInput defaultValue={this.state.baseUrl} autoCapitalize="none" placeholder="{baseUrl}" 
+                     style={styles.textInput} 
                      onChangeText={(baseUrl) => this.setState({ baseUrl })} />
-          <TextInput style={styles.textInput} defaultValue={this.state.channel} autoCapitalize="none" placeholder="{channel}" 
+          <TextInput defaultValue={this.state.channel} autoCapitalize="none" placeholder="{channel}" 
+                     style={styles.textInput} 
                      onChangeText={(channel) => this.setState({ channel })} />
           <Button styles={styles.button} title="change" onPress={this.startListening} />
           <TextInput style={styles.textInput} defaultValue={this.state.txtChat} autoCapitalize="none"
@@ -129,7 +125,7 @@ export default class App extends Component {
             {this.state.users.map(x => 
               (<Image key={x.userId} source={{ uri: x.profileUrl }} style={{ width: 50, height: 50, marginTop:4, marginLeft:4 }}>
                   <Text style={{color: (x.userId == (this.sub && this.sub.userId) ? '#000' : '#666'), 
-                      backgroundColor: 'rgba(0,0,0,0)', marginTop: 38, fontSize: 10, textAlign: 'center' }}>
+                    backgroundColor:'rgba(0,0,0,0)', marginTop:38, fontSize:10, textAlign:'center'}}>
                     @{x.displayName}
                   </Text>
                </Image>)  
