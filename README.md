@@ -366,6 +366,312 @@ Then we can re-run our server to see our changes:
 
 ## React Native App
 
+Arguably the most exciting platform you can build with JavaScript in recent times is Facebook's
+[React Native](https://facebook.github.io/react-native/) which lets you take advantage of [React](https://facebook.github.io/react/) to develop Native iOS and Android Mobile Apps with Web App 
+productivity. Thanks to Facebook's focus on developer tooling and fast iterative workflow, building rich native iOS and Android UI's can now be done at record speed where UI changes are visible instantly.
+
+The [React Native Getting Started Guide](https://facebook.github.io/react-native/docs/getting-started.html) 
+will get you up and running with everything you need to start building Native Mobile Apps which is also
+pre-configured with Babel so you can take advantage of 
+[advanced ES6 and ES7 language features](https://facebook.github.io/react-native/docs/javascript-environment.html). For our Example App we've stuck
+to React Native defaults so the app is written in JavaScript instead of TypeScript but still enjoys the same
+simplified programming model and concrete Types that [servicestack-client](https://github.com/ServiceStack/servicestack-client) enables.
+
+### Differences between React Native and Web App
+
+Whilst Facebook has put in a lot of effort so that Web Developers can reuse their existing knowledge to
+become productive in React Native, it's still limited by the Mobile platform it's running on so instead of
+HTML Elements in JSX Views you'll be using Elements that map to Native widgets with limited amount of 
+styling that each Widget support instead of the full flexibility and rich queryability of CSS you may be 
+used to. Other challenges you'll be facing is the much smaller screen resolution in smart phones and a
+touch-focused UI so many existing React Web Apps are going to require significant rework to be adapted to
+a React Native App but most of your non-UI components will still be able to benefit from great code-reuse.
+
+### React Native Structure
+
+Unlike the above Web Apps which splits behavior, layout and styles across multiple `.ts`, `.html` and `.css`
+files, React Apps can be built using just JavaScript which is contained within the single **index.ios.js**
+below in less than [<200 Lines of JavaScript](https://github.com/ServiceStackApps/typescript-server-events/blob/master/reactnative/index.ios.js):
+
+ - [index.ios.js](https://github.com/ServiceStackApps/typescript-server-events/blob/master/reactnative/index.ios.js) - The entire App including all behavior, layout and styles
+ - [dtos.js](https://github.com/ServiceStackApps/typescript-server-events/blob/master/reactnative/dtos.js) - Server DTOs from [chat.servicestack.net/types/typescript](http://chat.servicestack.net/types/typescript) and compiled to .js with `tsc`
+
+Due to constraints of the smaller screen size the React Native App adopts a more compact layout but retains
+similar functionality to the other Web Apps which looks like: 
+
 ![](https://raw.githubusercontent.com/ServiceStack/Assets/master/img/livedemos/typescript-serverevents/react-native.png)
 
+### Enable Server Events in React Native
 
+The W3C's `EventSource` doesn't exist in React Native and the 
+[eventsource](https://www.npmjs.com/package/eventsource) polyfill relies on core node.js dependencies
+which isn't available in React Native so we need to use one that does, luckily we can use the aptly named
+[react-native-event-source](https://github.com/madriska/react-native-event-source/).
+
+Since it's faster and more reliable than npm, Facebook recommends using their own
+[yarn package manager client](https://yarnpkg.com/en/) which can be 
+[installed on each major Desktop OS](https://yarnpkg.com/lang/en/docs/install/). Once installed you can
+add npm packages with a simple:
+
+    yarn add react-native-event-source
+
+Which is roughly equivalent to:
+
+    npm install react-native-event-source --save
+
+Once installed we can then import it into the global scope with:
+
+```js
+import EventSource from 'react-native-event-source'; 
+global.EventSource = EventSource;
+```
+
+### React Native Server Events Configuration
+
+The Server Events Configuration is essentially remains the same, the primary differences are that it's
+defined inside a React Component so handlers are calling member methods and as we're using JavaScript
+we've had to strip TypeScript's Type annotations:
+
+```js
+startListening = () => {
+    if (this.client)
+      this.client.stop();
+
+    console.log(`Listening on ${this.state.baseUrl}...`)
+    this.client = new ServerEventsClient(this.state.baseUrl, [this.state.channel], {
+      handlers: {
+        onConnect: (e) => {
+          e.heartbeatIntervalMs = 30000;
+          this.refresh(this.sub = e);
+        },
+        onJoin: this.refresh,
+        onLeave: this.refresh,
+        onUpdate: this.refresh,
+        onMessage: this.addMessage
+      }, 
+      onException: e => {
+        console.log('onException', e);
+        this.addMessageJsx(<Text style={styles.error}>{e.message || e + ""}</Text>);
+      }
+    }).start()
+}
+```
+
+> We've also extended the `heartbeatIntervalMs` as this `EventSource` implementation is based on XHR
+which in React Native terminates the XHR long-running connection to the Server Events `/event-stream`
+causing it to auto-reconnect on each heartbeat. We'll continue to investigate to see if there's a
+more suitable `EventSource` implementation we can use in React Native.
+
+### React Native Handler Implementations
+
+Whilst the purpose of the handlers remain the same, we start to see the implementation diverge in React Native 
+where instead of HTML we're adding JSX of Mobile App Components and our state is now maintained in the React
+Component's state where it's able to trigger re-rendering of the UI on each state change. 
+
+```js
+refresh = (e) => {
+  console.log(e.cmd);
+  this.addMessage(e);
+  this.refreshUsers();
+}
+
+addMessage = (e) => {
+  this.addMessageJsx(<Text style={styles.message}>{e.selector} {e.json}</Text>);
+}
+
+addMessageJsx = (jsx) => {
+    var messages = this.state.messages;
+    (messages[this.state.channel] || (messages[this.state.channel] = [])).push(jsx);
+    this.setState({ messages, dataSource: ds.cloneWithRows(messages[this.state.channel]) })
+}
+
+refreshUsers = async () =>  {
+  var users = await this.client.getChannelSubscribers();
+  users.sort((x,y) => y.userId.localeCompare(x.userId));
+  this.setState({ 
+    users,
+    dataSourceUsers: dsUsers.cloneWithRows(users)
+  });
+}
+```
+
+We've also made some concessions given we want to target resource-constrained mobile devices where we're
+also maintaining our channel messages in the [ListViewDataSource](https://facebook.github.io/react-native/docs/listviewdatasource.html) below: 
+
+```js
+const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+```
+
+Which enables more efficient data processing and UI rendering of a `ListView` component.
+
+### Typed API calls in React Native
+
+Despite the React Native App being developed in JavaScript the syntax for making Typed API calls remains
+exactly the same for importing both the generic clients and servers typed DTOs.
+
+Only one additional step is needed after importing the Servers TypeScript DTOs:
+
+    curl http://chat.servicestack.net/types/typescript > dtos.ts
+
+Which is to compile it to JavaScript that we can do with the TypeScript compiler directly as it's only 1 file: 
+
+    tsc dtos.ts
+
+Now we can get back calling APIs as normal by populating our Request DTO's and sending them with the 
+generic Service Client:
+
+```js
+import { ServerEventsClient } from 'servicestack-client';
+import { PostChatToChannel } from './dtos';
+
+sendChat = () => {
+  if (!this.state.txtChat || !this.sub) 
+    return;
+
+  let request = new PostChatToChannel();
+  request.from = this.sub.id;
+  request.channel = this.state.channel;    
+  request.selector = "cmd.chat";
+  request.message = this.state.txtChat;
+  this.client.serviceClient.post(request);
+}
+```
+
+In addition to 100% code reuse, we also surprisingly benefit from the original TypeScript definitions even in 
+plain JavaScript thanks to 
+[VS Code's Salsa Engine](https://github.com/Microsoft/TypeScript-wiki/blob/master/JavaScript-Language-Service-in-Visual-Studio.md) 
+which provides the Language Services for both TypeScript and JavaScript source files, so even though there 
+are no Type annotations in JavaScript it's still able to provide rich intelli-sense from the original 
+`dtos.ts` TypeScript sources:
+
+![](https://raw.githubusercontent.com/ServiceStack/Assets/master/img/livedemos/typescript-serverevents/js-intellisense.png)
+
+`Ctrl+Click` on the Request DTO Type also works where it will navigate to the Type definition in `dtos.ts` 
+despite none of the properties existing in the compiled 
+[dtos.js](https://github.com/ServiceStackApps/typescript-server-events/blob/master/reactnative/dtos.js)
+that are used at runtime.
+
+### React Native Layout
+
+Whilst the handler implementations differ slightly, the React Native UI needed to be completely rewritten 
+which now uses JSX Mobile Widgets instead of HTML/CSS which is now rendered with React-style instead of 
+jQuery-style UI binding where the entire UI needs to be rendered in our `App` component `render()` method. 
+
+Luckily React makes this both easy and highly functional, enabling the full power JavaScript's latest ES6/7 
+language features to create our View and seamlessly bind our Apps logic:
+
+```jsx
+render() {
+  var i = 0;
+  return (
+    <View style={{flex: 1, flexDirection: 'row'}}>
+      <View style={{width: "35%", height: "100%", backgroundColor: '#f1f1f1', paddingTop: 0}}>
+        <Text style={styles.h2}>channel</Text>
+        <TextInput defaultValue={this.state.baseUrl} autoCapitalize="none" placeholder="{baseUrl}" 
+                   style={styles.textInput} 
+                   onChangeText={(baseUrl) => this.setState({ baseUrl })} />
+        <TextInput defaultValue={this.state.channel} autoCapitalize="none" placeholder="{channel}" 
+                   style={styles.textInput} 
+                   onChangeText={(channel) => this.setState({ channel })} />
+        <Button styles={styles.button} title="change" onPress={this.startListening} />
+        <TextInput style={styles.textInput} defaultValue={this.state.txtChat} autoCapitalize="none"
+                   onChangeText={txtChat => this.setState({ txtChat })} />
+        <Button styles={styles.button} title="post chat" onPress={this.sendChat} />
+        <Text style={styles.h2}>users</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap'  }}>
+          {this.state.users.map(x => 
+            (<Image key={x.userId} source={{ uri: x.profileUrl }} style={{ width: 50, height: 50, 
+                    marginTop:4, marginLeft:4 }}>
+                <Text style={{color: (x.userId == (this.sub && this.sub.userId) ? '#000' : '#666'), 
+                  backgroundColor:'rgba(0,0,0,0)', marginTop:38, fontSize:10, textAlign:'center'}}>
+                  @{x.displayName}
+                </Text>
+              </Image>)  
+          )}
+        </View>
+      </View>
+      <View style={{width: "65%", height: "100%", backgroundColor: "#fff", paddingTop: 0}}>
+        <Text style={styles.h2}>messages</Text>
+        {(this.state.messages[this.state.channel] || []).length > 0
+          ? (<ListView dataSource={this.state.dataSource} style={{ height: 100 }}
+                        renderRow={x => <View style={i++ % 2 == 0 ? styles.row : styles.altRow}>{x}</View>} />)
+          : null}
+      </View>
+    </View>
+  );
+}
+```
+
+The ultimate benefit of React still holds in React Native where it takes care of efficiently syncing your Component's state to its declarative UI leaving us to solely focus on how our App should look like for a
+given state whilst it transparently handles all the imperative mutations to transition the UI to each state.
+
+### React Native Styles
+
+To put the finishing touches on our App we need to give it some Style. Like React Web, styles are applied
+with a simple Object literal however
+[styles in React Native](https://facebook.github.io/react-native/docs/style.html) 
+are more limiting, they don't automatically cascade and there's fewer of them so you'll need to look at the
+[avaialble Styles in each Element](https://facebook.github.io/react-native/docs/text.html#style)
+to find out which styles you can use. 
+
+However as they're Object literals that can be manipulated with JavaScript, there's several techniques 
+and language features you can leverage to maintain and apply them. Styles can be applied in-line or in a
+separate [StyleSheet](https://facebook.github.io/react-native/docs/stylesheet.html), e.g:
+
+```js
+const styles = StyleSheet.create({
+  h2: {
+    textAlign: "center", 
+    backgroundColor: "#444", 
+    color: "#fff",
+  },
+  button: {
+    margin: 0,
+    padding: 0,
+  },
+  textInput: {
+    height: 24, 
+    backgroundColor: "white",
+    margin: 4,
+    marginBottom: 0,
+    paddingLeft: 4
+  },
+  row: {
+    backgroundColor: "#fff",
+  },
+  altRow: {
+    backgroundColor: "#f1f1f1",
+  },
+  message: {
+    fontSize: 10,
+  },
+  error: {
+    fontSize: 10,
+    color: "#f00"
+  }
+});
+```
+
+### Running the React Native App
+
+You'll be using the [react-native-cli](https://www.npmjs.com/package/react-native-cli) command-line interface
+to run a lot of tasks in React Native including 
+[Creating your React Native project](https://facebook.github.io/react-native/docs/getting-started.html#the-react-native-cli) 
+and then running it, e.g:
+
+    react-native init AwesomeProject
+    cd AwesomeProject
+    react-native run-ios
+
+After your project is created you'll use `react-native run-ios` to run it in the iOS Simulator. This takes 
+a while to first startup but after it's running you can make fast, iterative changes by saving then clicking
+`Command⌘ + R` to instantly reload your App. This productive workflow is a joy and is the fastest way I've 
+seen to rapidly develop UI's in a live running iOS App.
+
+Debugging is also available by pressing `Command⌘ + D` in the iOS Simulator to bring up the Debug menu
+then clicking on the **Debug JS Remotely** menu item to open a debugging session in Chrome Web Inspector
+for a rich debugging experience. Interestingly when your App runs in iOS it uses Safari's **JavaScriptCore**
+VM but when [debugging in Chrome it uses V8](https://facebook.github.io/react-native/docs/javascript-environment.html) to run all JavaScript code and 
+communicate back to your iOS App via Web Sockets. The different environments can cause some discrepencies
+like our `EventSource` connection which uses the `XMLHTTPRequest` implementation in Chrome which doesn't 
+have the heartbeat disconnection issues that `XMLHTTPRequest` implementation in iOS does.
