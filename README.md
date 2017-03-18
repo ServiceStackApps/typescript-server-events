@@ -1,4 +1,4 @@
-# TypeScript Web, Node.js and React Native ServerEvents Apps
+# Web, Node.js and React Native ServerEvents Apps
 
 This project contains a number of self-contained TypeScript and JavaScript projects showcasing the different JavaScript runtime environments that can leverage the isomorphic multi-platform 
 [servicestack-client](https://github.com/ServiceStack/servicestack-client) library in 
