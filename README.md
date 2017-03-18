@@ -1,10 +1,14 @@
-# TypeScript Service Client and Server Events Apps
+# TypeScript Web, Node.js and React Native ServerEvents Apps
 
-This project contains a number of self-contained TypeScript and JavaScript projects showcasing the different JavaScript runtime environments that can leverage the isomorphic and multi-platform
-[servicestack-client](https://github.com/ServiceStack/servicestack-client) library in Web and React Native 
-Mobile Apps as well as node.js server and test projects to enable effortlesss typed end-to-end API calls using the generic `JsonServiceClient` and generated 
-[TypeScript Add ServiceStack Reference](http://docs.servicestack.net/typescript-add-servicestack-reference) DTOs as well as easily handling real-time notifications using 
-[TypeScript ServerEventsClient](http://docs.servicestack.net/typescript-server-events-client).
+This project contains a number of self-contained TypeScript and JavaScript projects showcasing the different JavaScript runtime environments that can leverage the isomorphic multi-platform 
+[servicestack-client](https://github.com/ServiceStack/servicestack-client) library in 
+[Web Apps](https://github.com/ServiceStackApps/typescript-server-events#web-app), 
+[React Native Mobile Apps](https://github.com/ServiceStackApps/typescript-server-events#react-native-app) and 
+[node.js server and test projects](https://github.com/ServiceStackApps/typescript-server-events#nodejs-server-app) 
+to enable effortlesss typed end-to-end API calls using a Server's generated
+[TypeScript Add ServiceStack Reference](http://docs.servicestack.net/typescript-add-servicestack-reference) DTOs
+with a generic `JsonServiceClient`. The Apps also showcase how to easily enable real-time notifications using 
+the [TypeScript ServerEventsClient](http://docs.servicestack.net/typescript-server-events-client).
 
 ![](https://raw.githubusercontent.com/ServiceStack/Assets/ca79950600197dc7da1f3e1db7877fff427523f9/img/livedemos/typescript-serverevents/typescript-server-events.png)
 
