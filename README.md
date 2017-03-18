@@ -10,7 +10,7 @@ to enable effortlesss typed end-to-end API calls using a Server's generated
 with a generic `JsonServiceClient`. The Apps also showcase how to easily enable real-time notifications using 
 the [TypeScript ServerEventsClient](http://docs.servicestack.net/typescript-server-events-client).
 
-![](https://raw.githubusercontent.com/ServiceStack/Assets/ca79950600197dc7da1f3e1db7877fff427523f9/img/livedemos/typescript-serverevents/typescript-server-events.png)
+![](https://raw.githubusercontent.com/ServiceStack/Assets/master/img/livedemos/typescript-serverevents/typescript-server-events-banner.png)
 
 The [servicestack-client](https://github.com/ServiceStack/servicestack-client) npm 
 package can be used in either TypeScript or pure JavaScript projects and closely follows the design of the 
