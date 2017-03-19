@@ -4,8 +4,7 @@ This project contains a number of self-contained TypeScript and JavaScript proje
 [servicestack-client](https://github.com/ServiceStack/servicestack-client) library in 
 [Web Apps](https://github.com/ServiceStackApps/typescript-server-events#web-app), 
 [React Native Mobile Apps](https://github.com/ServiceStackApps/typescript-server-events#react-native-app) and 
-[node.js server and test projects](https://github.com/ServiceStackApps/typescript-server-events#nodejs-server-app) 
-to enable effortlesss typed end-to-end API calls using a Server's generated
+[Node.js server](https://github.com/ServiceStackApps/typescript-server-events#nodejs-server-app) and test projects to enable effortlesss typed end-to-end API calls using a Server's generated
 [TypeScript Add ServiceStack Reference](http://docs.servicestack.net/typescript-add-servicestack-reference) DTOs
 with a generic `JsonServiceClient`. The Apps also showcase how to easily enable real-time notifications using 
 the [TypeScript ServerEventsClient](http://docs.servicestack.net/typescript-server-events-client).
@@ -19,6 +18,10 @@ package can be used in either TypeScript or pure JavaScript projects and closely
 in idiomatic JavaScript to maximize **knowledge sharing** and minimize native **porting efforts** between the different languages and platforms [ServiceStack References supports](http://docs.servicestack.net/add-servicestack-reference#supported-languages).
 
 The examples below explore the type benefits and value provided by the `JsonServiceClient` and `ServerEventsClient` which enables 100% code sharing of client logic across JavaScript's most popular environments.
+
+    - [Web App](#web-app)
+    - [Node.js Server App](#nodejs-server-app)
+    - [React Native Mobile App](#react-native-mobile-app)
 
 ## Web App
 
@@ -176,7 +179,7 @@ This will launch a background watcher to monitor your source files for changes a
 pipe them through the TypeScript compiler and bundle its output in `/dist/bundle.js` which
 is the only .js source file our app references, that we can reload with **F5** to see any changes.
 
-## node.js Server App
+## Node.js Server App
 
 The [/node](https://github.com/ServiceStackApps/typescript-server-events/tree/master/node) server.js app
 has the same functionality as the Web App except instead of connecting to the [chat.servicestack.net](http://chat.servicestack.net) Events stream on the client, all connections are made in node.js and its 
@@ -368,39 +371,44 @@ Then we can re-run our server to see our changes:
 
     node server.js
 
-## React Native App
+## React Native Mobile App
 
 Arguably the most exciting platform you can build with JavaScript in recent times is Facebook's
-[React Native](https://facebook.github.io/react-native/) which lets you take advantage of [React](https://facebook.github.io/react/) to develop Native iOS and Android Mobile Apps with Web App 
-productivity. Thanks to Facebook's focus on developer tooling and fast iterative workflow, building rich native iOS and Android UI's can now be done at record speed where UI changes are visible instantly.
+[React Native](https://facebook.github.io/react-native/) where you can take advantage of [React](https://facebook.github.io/react/) to develop Native iOS and Android Mobile Apps with Web App 
+productivity. Thanks to Facebook's relentless focus on developer tooling and productivity, building rich native iOS and Android UI's can now be done at record speed in a fast iterative workflow with UI changes visible instantly.
 
 The [React Native Getting Started Guide](https://facebook.github.io/react-native/docs/getting-started.html) 
 will get you up and running with everything you need to start building Native Mobile Apps which is also
 pre-configured with Babel so you can take advantage of 
-[advanced ES6 and ES7 language features](https://facebook.github.io/react-native/docs/javascript-environment.html). For our Example App we've stuck
-to React Native defaults so the app is written in JavaScript instead of TypeScript but still enjoys the same
-simplified programming model and concrete Types that [servicestack-client](https://github.com/ServiceStack/servicestack-client) enables.
+[advanced ES6 and ES7 language features](https://facebook.github.io/react-native/docs/javascript-environment.html). It's command-line based tooling
+lets you use your preferred IDE or text editor - my preference is [VS Code](https://code.visualstudio.com/)
+which is light-weight, cross-platform whilst providing a rich authoring experience. 
+
+For our Example React Native App we've stuck with React Native default of using JavaScript instead of 
+TypeScript but still enjoys the same simplified programming model and concrete Types that 
+[servicestack-client](https://github.com/ServiceStack/servicestack-client) enables.
 
 ### Differences between React Native and Web App
 
-Whilst Facebook has put in a lot of effort so that Web Developers can reuse their existing knowledge to
-become productive in React Native, it's still limited by the Mobile platform it's running on so instead of
-HTML Elements in JSX Views you'll be using Elements that map to Native widgets with limited amount of 
-styling that each Widget support instead of the full flexibility and rich queryability of CSS you may be 
-used to. Other challenges you'll be facing is the much smaller screen resolution in smart phones and a
-touch-focused UI so many existing React Web Apps are going to require significant rework to be adapted to
-a React Native App but most of your non-UI components will still be able to benefit from great code-reuse.
+Facebook has put in a lot of effort so that Web Developers can reuse their existing knowledge to
+become productive in React Native, but ultimately it's still limited by the Mobile platform it's running on 
+where instead of HTML Elements in JSX Views you'll use Native Widgets with stylability limited to what each 
+individual Widget supports instead of the flexibility, applicability and rich queryability of CSS. 
+
+Other challenges for developing for smart phones is a much smaller screen resolution a touch-focused UI 
+so many existing React Web Apps are going to require significant UI rework to be adapted to a React Native 
+Mobile App but otherwise many non-UI components will continue to benefit from great code-reuse.
 
 ### React Native Structure
 
-Unlike the above Web Apps which splits behavior, layout and styles across multiple `.ts`, `.html` and `.css`
-files, React Apps can be built using just JavaScript which is contained within the single **index.ios.js**
-below in less than [<200 Lines of JavaScript](https://github.com/ServiceStackApps/typescript-server-events/blob/master/reactnative/index.ios.js):
+Unlike Web Apps which splits behavior, layout and styles across multiple `.ts`, `.html` and `.css` files, 
+React Apps can be built using just JavaScript as seen in the single **index.ios.js** which contains the
+App's entire functionality, layout and style in [<200 Lines of JavaScript](https://github.com/ServiceStackApps/typescript-server-events/blob/master/reactnative/index.ios.js):
 
  - [index.ios.js](https://github.com/ServiceStackApps/typescript-server-events/blob/master/reactnative/index.ios.js) - The entire App including all behavior, layout and styles
- - [dtos.js](https://github.com/ServiceStackApps/typescript-server-events/blob/master/reactnative/dtos.js) - Server DTOs from [chat.servicestack.net/types/typescript](http://chat.servicestack.net/types/typescript) and compiled to .js with `tsc`
+ - [dtos.js](https://github.com/ServiceStackApps/typescript-server-events/blob/master/reactnative/dtos.js) - Server DTOs from [chat.servicestack.net/types/typescript](http://chat.servicestack.net/types/typescript) and compiled into .js using `tsc`
 
-Due to constraints of the smaller screen size the React Native App adopts a more compact layout but retains
+The smaller screen size means our React Native App adopts a more compact layout but otherwise retains
 similar functionality to the other Web Apps which looks like: 
 
 ![](https://raw.githubusercontent.com/ServiceStack/Assets/master/img/livedemos/typescript-serverevents/react-native.png)
@@ -408,11 +416,9 @@ similar functionality to the other Web Apps which looks like:
 ### Enable Server Events in React Native
 
 The W3C's `EventSource` doesn't exist in React Native and the 
-[eventsource](https://www.npmjs.com/package/eventsource) polyfill relies on core node.js dependencies
-which isn't available in React Native so we need to use one that does, luckily we can use the aptly named
-[react-native-event-source](https://github.com/madriska/react-native-event-source/).
+[eventsource](https://www.npmjs.com/package/eventsource) polyfill for node.js relies on core node.js dependencies which aren't available in React Native so we need to switch to one that does, luckily we can use the aptly named [react-native-event-source](https://github.com/madriska/react-native-event-source/) for this.
 
-Since it's faster and more reliable than npm, Facebook recommends using their own
+Since it's faster, more reliable and predictable than npm, Facebook recommends using their own
 [yarn package manager client](https://yarnpkg.com/en/) which can be 
 [installed on each major Desktop OS](https://yarnpkg.com/lang/en/docs/install/). Once installed you can
 add npm packages with a simple:
@@ -423,7 +429,7 @@ Which is roughly equivalent to:
 
     npm install react-native-event-source --save
 
-Once installed we can then import it into the global scope with:
+Once installed it can be imported into the global scope with:
 
 ```js
 import EventSource from 'react-native-event-source'; 
@@ -432,9 +438,9 @@ global.EventSource = EventSource;
 
 ### React Native Server Events Configuration
 
-The Server Events Configuration is essentially remains the same, the primary differences are that it's
-defined inside a React Component so handlers are calling member methods and as we're using JavaScript
-we've had to strip TypeScript's Type annotations:
+The Server Events Configuration essentially remains the same, the primary differences are that it's
+defined inside a React Component so handlers are calling member methods and as it's using JavaScript
+all TypeScript Type annotations need to be removed:
 
 ```js
 startListening = () => {
@@ -463,14 +469,14 @@ startListening = () => {
 
 > We've also extended the `heartbeatIntervalMs` as this `EventSource` implementation is based on XHR
 which in React Native terminates the XHR long-running connection to the Server Events `/event-stream`
-causing it to auto-reconnect on each heartbeat. We'll continue to investigate to see if there's a
-more suitable `EventSource` implementation we can use in React Native.
+causing it to auto-reconnect on each heartbeat. We'll continue investigating to find a more suitable 
+`EventSource` implementation for React Native.
 
 ### React Native Handler Implementations
 
 Whilst the purpose of the handlers remain the same, we start to see the implementation diverge in React Native 
-where instead of HTML we're adding JSX of Mobile App Components and our state is now maintained in the React
-Component's state where it's able to trigger re-rendering of the UI on each state change. 
+where instead of HTML we're adding JSX and instead of Arrays our state is maintained in the React
+Component's state where it can automatically trigger re-rendering of the UI on each state change. 
 
 ```js
 refresh = (e) => {
@@ -499,14 +505,15 @@ refreshUsers = async () =>  {
 }
 ```
 
-We've also made some concessions given we want to target resource-constrained mobile devices where we're
-also maintaining our channel messages in the [ListViewDataSource](https://facebook.github.io/react-native/docs/listviewdatasource.html) below: 
+Given we're targeting resource-constrained mobile devices we've made some where channel messages are also
+being maintained in the 
+[ListViewDataSource](https://facebook.github.io/react-native/docs/listviewdatasource.html) below: 
 
 ```js
 const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 ```
 
-Which enables more efficient data processing and UI rendering of a `ListView` component.
+As it enables more efficient data processing and UI rendering of the messages `ListView` component.
 
 ### Typed API calls in React Native
 
@@ -517,12 +524,11 @@ Only one additional step is needed after importing the Servers TypeScript DTOs:
 
     curl http://chat.servicestack.net/types/typescript > dtos.ts
 
-Which is to compile it to JavaScript that we can do with the TypeScript compiler directly as it's only 1 file: 
+Which is to compile it to JavaScript, done without any tsconfig by invoking the TypeScript compiler directly: 
 
     tsc dtos.ts
 
-Now we can get back calling APIs as normal by populating our Request DTO's and sending them with the 
-generic Service Client:
+Now APIs can be consumed as normal by populating our Request DTO's and sending it using the generic `JsonServiceClient`:
 
 ```js
 import { ServerEventsClient } from 'servicestack-client';
@@ -541,25 +547,24 @@ sendChat = () => {
 }
 ```
 
-In addition to 100% code reuse, we also surprisingly benefit from the original TypeScript definitions even in 
+In addition to 100% code reuse, we surprisingly also benefit from the original TypeScript definitions even in 
 plain JavaScript thanks to 
 [VS Code's Salsa Engine](https://github.com/Microsoft/TypeScript-wiki/blob/master/JavaScript-Language-Service-in-Visual-Studio.md) 
-which provides the Language Services for both TypeScript and JavaScript source files, so even though there 
-are no Type annotations in JavaScript it's still able to provide rich intelli-sense from the original 
-`dtos.ts` TypeScript sources:
+which provides the Language Services for both TypeScript and JavaScript source files in VS Code, so even 
+though there are no Type annotations in JavaScript it's still able to provide rich intelli-sense from the 
+original `dtos.ts` TypeScript sources:
 
 ![](https://raw.githubusercontent.com/ServiceStack/Assets/master/img/livedemos/typescript-serverevents/js-intellisense.png)
 
-`Ctrl+Click` on the Request DTO Type also works where it will navigate to the Type definition in `dtos.ts` 
-despite none of the properties existing in the compiled 
+`Ctrl+Click` on the Request DTO Type even navigates to the Type definition in `dtos.ts` despite none of the properties existing in the compiled 
 [dtos.js](https://github.com/ServiceStackApps/typescript-server-events/blob/master/reactnative/dtos.js)
-that are used at runtime.
+that's used at runtime.
 
 ### React Native Layout
 
 Whilst the handler implementations differ slightly, the React Native UI needed to be completely rewritten 
-which now uses JSX Mobile Widgets instead of HTML/CSS which is now rendered with React-style instead of 
-jQuery-style UI binding where the entire UI needs to be rendered in our `App` component `render()` method. 
+which now uses JSX Mobile Widgets instead of HTML/CSS that's now rendered in React-style instead of 
+jQuery-style UI binding where the entire UI is rendered in the `App` Component `render()` method. 
 
 Luckily React makes this both easy and highly functional, enabling the full power JavaScript's latest ES6/7 
 language features to create our View and seamlessly bind our Apps logic:
@@ -616,7 +621,7 @@ with a simple Object literal however
 [styles in React Native](https://facebook.github.io/react-native/docs/style.html) 
 are more limiting, they don't automatically cascade and there's fewer of them so you'll need to look at the
 [avaialble Styles in each Element](https://facebook.github.io/react-native/docs/text.html#style)
-to find out which styles you can use. 
+to find out which styles can be used. 
 
 However as they're Object literals that can be manipulated with JavaScript, there's several techniques 
 and language features you can leverage to maintain and apply them. Styles can be applied in-line or in a
@@ -659,7 +664,7 @@ const styles = StyleSheet.create({
 ### Running the React Native App
 
 You'll be using the [react-native-cli](https://www.npmjs.com/package/react-native-cli) command-line interface
-to run a lot of tasks in React Native including 
+for running most tasks in React Native including 
 [Creating your React Native project](https://facebook.github.io/react-native/docs/getting-started.html#the-react-native-cli) 
 and then running it, e.g:
 
@@ -667,15 +672,23 @@ and then running it, e.g:
     cd AwesomeProject
     react-native run-ios
 
-After your project is created you'll use `react-native run-ios` to run it in the iOS Simulator. This takes 
+After your project is created run `react-native run-ios` to launch it in the iOS Simulator. This takes 
 a while to first startup but after it's running you can make fast, iterative changes by saving then clicking
-`Command⌘ + R` to instantly reload your App. This productive workflow is a joy and is the fastest way I've 
-seen to rapidly develop UI's in a live running iOS App.
+`Command⌘ + R` to instantly reload your App. This productive workflow is a joy and the fastest way I've 
+seen to rapidly develop Mobile UI's in a live running iOS App.
 
-Debugging is also available by pressing `Command⌘ + D` in the iOS Simulator to bring up the Debug menu
-then clicking on the **Debug JS Remotely** menu item to open a debugging session in Chrome Web Inspector
+Debugging is also available by pressing `Command⌘ + D` in the iOS Simulator to bring up the Debug menu and 
+then clicking on the **Debug JS Remotely** menu item to open a debugging session in Chrome's Web Inspector
 for a rich debugging experience. Interestingly when your App runs in iOS it uses Safari's **JavaScriptCore**
 VM but when [debugging in Chrome it uses V8](https://facebook.github.io/react-native/docs/javascript-environment.html) to run all JavaScript code and 
 communicate back to your iOS App via Web Sockets. The different environments can cause some discrepencies
 like our `EventSource` connection which uses the `XMLHTTPRequest` implementation in Chrome which doesn't 
-have the heartbeat disconnection issues that `XMLHTTPRequest` implementation in iOS does.
+have the heartbeat disconnection issues that the `XMLHTTPRequest` implementation in iOS has.
+
+## Find out more
+
+We hope you've found these Example App's useful, for more info on the available features of
+[servicestack-client](https://github.com/ServiceStack/servicestack-client/) checkout:
+
+ - [TypeScript Add ServiceStack Reference](http://docs.servicestack.net/typescript-add-servicestack-reference)
+ - [TypeScript Server Events Client](http://docs.servicestack.net/typescript-server-events-client)
