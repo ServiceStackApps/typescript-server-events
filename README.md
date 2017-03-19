@@ -687,7 +687,7 @@ have the heartbeat disconnection issues that the `XMLHTTPRequest` implementation
 
 ## Find out more
 
-We hope you've found these Example App's useful, for more info on the available features of
+We hope you've found these Example App's useful, for more info on features available in
 [servicestack-client](https://github.com/ServiceStack/servicestack-client/) checkout:
 
  - [TypeScript Add ServiceStack Reference](http://docs.servicestack.net/typescript-add-servicestack-reference)
