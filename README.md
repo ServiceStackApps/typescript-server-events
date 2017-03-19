@@ -19,9 +19,9 @@ in idiomatic JavaScript to maximize **knowledge sharing** and minimize native **
 
 The examples below explore the type benefits and value provided by the `JsonServiceClient` and `ServerEventsClient` which enables 100% code sharing of client logic across JavaScript's most popular environments.
 
-    - [Web App](#web-app)
-    - [Node.js Server App](#nodejs-server-app)
-    - [React Native Mobile App](#react-native-mobile-app)
+  - [Web App](#web-app)
+  - [Node.js Server App](#nodejs-server-app)
+  - [React Native Mobile App](#react-native-mobile-app)
 
 ## Web App
 
