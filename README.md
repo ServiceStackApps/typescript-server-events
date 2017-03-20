@@ -6,8 +6,7 @@ This project contains a number of self-contained TypeScript and JavaScript proje
 [React Native Mobile Apps](https://github.com/ServiceStackApps/typescript-server-events#react-native-app) and 
 [Node.js server](https://github.com/ServiceStackApps/typescript-server-events#nodejs-server-app) and test projects to enable effortlesss typed end-to-end API calls using a Server's generated
 [TypeScript Add ServiceStack Reference](http://docs.servicestack.net/typescript-add-servicestack-reference) DTOs
-with a generic `JsonServiceClient`. The Apps also showcase how to easily enable real-time notifications using 
-the [TypeScript ServerEventsClient](http://docs.servicestack.net/typescript-server-events-client).
+and easily enable real-time notifications using the [TypeScript ServerEvents Client](http://docs.servicestack.net/typescript-server-events-client).
 
 ![](https://raw.githubusercontent.com/ServiceStack/Assets/master/img/livedemos/typescript-serverevents/typescript-server-events-banner.png)
 
