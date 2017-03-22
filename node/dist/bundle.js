@@ -135,6 +135,131 @@ var ServerEventsClient = (function () {
         this.channels = channels;
         this.options = options;
         this.eventSource = eventSource;
+        this.onMessage = function (e) {
+            if (_this.stopped)
+                return;
+            var opt = _this.options;
+            if (typeof document == "undefined") {
+                var document = {
+                    querySelectorAll: function (sel) { return []; }
+                };
+            }
+            var parts = exports.splitOnFirst(e.data, " ");
+            var channel = null;
+            var selector = parts[0];
+            var selParts = exports.splitOnFirst(selector, "@");
+            if (selParts.length > 1) {
+                channel = selParts[0];
+                selector = selParts[1];
+            }
+            var json = parts[1];
+            var body = null;
+            try {
+                body = json ? JSON.parse(json) : null;
+            }
+            catch (ignore) { }
+            parts = exports.splitOnFirst(selector, ".");
+            if (parts.length <= 1)
+                throw "invalid selector format: " + selector;
+            var op = parts[0], target = parts[1].replace(new RegExp("%20", "g"), " ");
+            var tokens = exports.splitOnFirst(target, "$");
+            var cmd = tokens[0], cssSelector = tokens[1];
+            var els = cssSelector && document.querySelectorAll(cssSelector);
+            var el = els && els[0];
+            var eventId = e.lastEventId;
+            var data = e.data;
+            var type = TypeMap[cmd] || "ServerEventMessage";
+            var request = { eventId: eventId, data: data, type: type,
+                channel: channel, selector: selector, json: json, body: body, op: op, target: tokens[0], cssSelector: cssSelector, meta: {} };
+            var mergedBody = typeof body == "object"
+                ? Object.assign({}, request, body)
+                : request;
+            if (opt.validate && opt.validate(request) === false)
+                return;
+            var headers = new Headers();
+            headers.set("Content-Type", "text/plain");
+            if (op === "cmd") {
+                if (cmd === "onConnect") {
+                    _this.connectionInfo = mergedBody;
+                    if (typeof body.heartbeatIntervalMs == "string")
+                        _this.connectionInfo.heartbeatIntervalMs = parseInt(body.heartbeatIntervalMs);
+                    if (typeof body.idleTimeoutMs == "string")
+                        _this.connectionInfo.idleTimeoutMs = parseInt(body.idleTimeoutMs);
+                    Object.assign(opt, body);
+                    var fn = opt.handlers["onConnect"];
+                    if (fn) {
+                        fn.call(el || document.body, _this.connectionInfo, request);
+                    }
+                    if (opt.heartbeatUrl) {
+                        if (opt.heartbeat) {
+                            clearInterval(opt.heartbeat);
+                        }
+                        opt.heartbeat = setInterval(function () {
+                            if (_this.eventSource.readyState === EventSource.CLOSED) {
+                                clearInterval(opt.heartbeat);
+                                var stopFn = opt.handlers["onStop"];
+                                if (stopFn != null)
+                                    stopFn.apply(_this.eventSource);
+                                _this.reconnectServerEvents({ error: new Error("EventSource is CLOSED") });
+                                return;
+                            }
+                            fetch(new Request(opt.heartbeatUrl, { method: "POST", mode: "cors", headers: headers }))
+                                .then(function (res) { if (!res.ok)
+                                throw new Error(res.status + " - " + res.statusText); })
+                                .catch(function (error) { return _this.reconnectServerEvents({ error: error }); });
+                        }, (_this.connectionInfo && _this.connectionInfo.heartbeatIntervalMs) || opt.heartbeatIntervalMs || 10000);
+                    }
+                    if (opt.unRegisterUrl) {
+                        if (typeof window != "undefined") {
+                            window.onunload = function () { return _this.stop(); };
+                        }
+                    }
+                    _this.updateSubscriberUrl = opt.updateSubscriberUrl;
+                    _this.updateChannels((opt.channels || "").split(","));
+                }
+                else {
+                    var isCmdMsg = cmd == "onJoin" || cmd == "onLeave" || cmd == "onUpdate";
+                    var fn = opt.handlers[cmd];
+                    if (fn) {
+                        if (isCmdMsg) {
+                            fn.call(el || document.body, mergedBody);
+                        }
+                        else {
+                            fn.call(el || document.body, body, request);
+                        }
+                    }
+                    else {
+                        if (!isCmdMsg) {
+                            var r = opt.receivers && opt.receivers["cmd"];
+                            _this.invokeReceiver(r, cmd, el, request, "cmd");
+                        }
+                    }
+                    if (isCmdMsg) {
+                        fn = opt.handlers["onCommand"];
+                        if (fn) {
+                            fn.call(el || document.body, mergedBody);
+                        }
+                    }
+                }
+            }
+            else if (op === "trigger") {
+                _this.raiseEvent(target, request);
+            }
+            else if (op === "css") {
+                exports.css(els || document.querySelectorAll("body"), cmd, body);
+            }
+            //Named Receiver
+            var r = opt.receivers && opt.receivers[op];
+            _this.invokeReceiver(r, cmd, el, request, op);
+            if (!TypeMap[cmd]) {
+                var fn = opt.handlers["onMessage"];
+                if (fn) {
+                    fn.call(el || document.body, mergedBody);
+                }
+            }
+            if (opt.onTick)
+                opt.onTick();
+        };
         this.onError = function (error) {
             if (_this.stopped)
                 return;
@@ -156,142 +281,19 @@ var ServerEventsClient = (function () {
         if (!this.options.handlers)
             this.options.handlers = {};
     }
-    ServerEventsClient.prototype.onMessage = function (e) {
-        var _this = this;
-        if (this.stopped)
-            return;
-        var opt = this.options;
-        if (typeof document == "undefined") {
-            var document = {
-                querySelectorAll: function (sel) { return []; }
-            };
-        }
-        var parts = exports.splitOnFirst(e.data, " ");
-        var channel = null;
-        var selector = parts[0];
-        var selParts = exports.splitOnFirst(selector, "@");
-        if (selParts.length > 1) {
-            channel = selParts[0];
-            selector = selParts[1];
-        }
-        var json = parts[1];
-        var body = null;
-        try {
-            body = json ? JSON.parse(json) : null;
-        }
-        catch (ignore) { }
-        parts = exports.splitOnFirst(selector, ".");
-        if (parts.length <= 1)
-            throw "invalid selector format: " + selector;
-        var op = parts[0], target = parts[1].replace(new RegExp("%20", "g"), " ");
-        var tokens = exports.splitOnFirst(target, "$");
-        var cmd = tokens[0], cssSelector = tokens[1];
-        var els = cssSelector && document.querySelectorAll(cssSelector);
-        var el = els && els[0];
-        var eventId = e.lastEventId;
-        var data = e.data;
-        var type = TypeMap[cmd] || "ServerEventMessage";
-        var request = { eventId: eventId, data: data, type: type,
-            channel: channel, selector: selector, json: json, body: body, op: op, target: tokens[0], cssSelector: cssSelector, meta: {} };
-        var mergedBody = typeof body == "object"
-            ? Object.assign({}, request, body)
-            : request;
-        if (opt.validate && opt.validate(request) === false)
-            return;
-        var headers = new Headers();
-        headers.set("Content-Type", "text/plain");
-        if (op === "cmd") {
-            if (cmd === "onConnect") {
-                this.connectionInfo = mergedBody;
-                if (typeof body.heartbeatIntervalMs == "string")
-                    this.connectionInfo.heartbeatIntervalMs = parseInt(body.heartbeatIntervalMs);
-                if (typeof body.idleTimeoutMs == "string")
-                    this.connectionInfo.idleTimeoutMs = parseInt(body.idleTimeoutMs);
-                Object.assign(opt, body);
-                var fn = opt.handlers["onConnect"];
-                if (fn) {
-                    fn.call(el || document.body, this.connectionInfo, request);
-                }
-                if (opt.heartbeatUrl) {
-                    if (opt.heartbeat) {
-                        clearInterval(opt.heartbeat);
-                    }
-                    opt.heartbeat = setInterval(function () {
-                        if (_this.eventSource.readyState === EventSource.CLOSED) {
-                            clearInterval(opt.heartbeat);
-                            var stopFn = opt.handlers["onStop"];
-                            if (stopFn != null)
-                                stopFn.apply(_this.eventSource);
-                            _this.reconnectServerEvents({ error: new Error("EventSource is CLOSED") });
-                            return;
-                        }
-                        fetch(new Request(opt.heartbeatUrl, { method: "POST", mode: "cors", headers: headers }))
-                            .then(function (res) { if (!res.ok)
-                            throw new Error(res.status + " - " + res.statusText); })
-                            .catch(function (error) { return _this.reconnectServerEvents({ error: error }); });
-                    }, (this.connectionInfo && this.connectionInfo.heartbeatIntervalMs) || opt.heartbeatIntervalMs || 10000);
-                }
-                if (opt.unRegisterUrl) {
-                    if (typeof window != "undefined") {
-                        window.onunload = function () { return _this.stop(); };
-                    }
-                }
-                this.updateSubscriberUrl = opt.updateSubscriberUrl;
-                this.updateChannels((opt.channels || "").split(","));
-            }
-            else {
-                var isCmdMsg = cmd == "onJoin" || cmd == "onLeave" || cmd == "onUpdate";
-                var fn = opt.handlers[cmd];
-                if (fn) {
-                    if (isCmdMsg) {
-                        fn.call(el || document.body, mergedBody);
-                    }
-                    else {
-                        fn.call(el || document.body, body, request);
-                    }
-                }
-                else {
-                    if (!isCmdMsg) {
-                        var r = opt.receivers && opt.receivers["cmd"];
-                        this.invokeReceiver(r, cmd, el, request, "cmd");
-                    }
-                }
-                if (isCmdMsg) {
-                    fn = opt.handlers["onCommand"];
-                    if (fn) {
-                        fn.call(el || document.body, mergedBody);
-                    }
-                }
-            }
-        }
-        else if (op === "trigger") {
-            this.raiseEvent(target, request);
-        }
-        else if (op === "css") {
-            exports.css(els || document.querySelectorAll("body"), cmd, body);
-        }
-        //Named Receiver
-        var r = opt.receivers && opt.receivers[op];
-        this.invokeReceiver(r, cmd, el, request, op);
-        if (!TypeMap[cmd]) {
-            var fn = opt.handlers["onMessage"];
-            if (fn) {
-                fn.call(el || document.body, mergedBody);
-            }
-        }
-        if (opt.onTick)
-            opt.onTick();
-    };
     ServerEventsClient.prototype.reconnectServerEvents = function (opt) {
+        var _this = this;
         if (opt === void 0) { opt = {}; }
         if (this.stopped)
             return;
         if (opt.error)
             this.onError(opt.error);
         var hold = this.eventSource;
-        var es = new EventSource(opt.url || this.eventStreamUri || hold.url);
-        es.onerror = opt.onerror || hold.onerror;
-        es.onmessage = opt.onmessage || hold.onmessage;
+        var es = this.EventSource
+            ? new this.EventSource(opt.url || this.eventStreamUri || hold.url)
+            : new EventSource(opt.url || this.eventStreamUri || hold.url);
+        es.addEventListener('error', function (e) { return opt.onerror || hold.onerror || _this.onError; });
+        es.addEventListener('message', opt.onmessage || hold.onmessage || this.onMessage);
         var fn = this.options.onReconnect;
         if (fn != null)
             fn.call(es, opt.error);
@@ -301,9 +303,11 @@ var ServerEventsClient = (function () {
     ServerEventsClient.prototype.start = function () {
         var _this = this;
         if (this.eventSource == null || this.eventSource.readyState === EventSource.CLOSED) {
-            this.eventSource = new EventSource(this.eventStreamUri);
-            this.eventSource.onmessage = this.onMessage.bind(this);
-            this.eventSource.onerror = function (e) { return _this.onError(e); };
+            this.eventSource = this.EventSource
+                ? new this.EventSource(this.eventStreamUri)
+                : new EventSource(this.eventStreamUri);
+            this.eventSource.addEventListener('error', this.onError);
+            this.eventSource.addEventListener('message', function (e) { return _this.onMessage(e); });
         }
         return this;
     };
@@ -577,6 +581,8 @@ var JsonServiceClient = (function () {
         this.credentials = 'include';
         this.headers = new Headers();
         this.headers.set("Content-Type", "application/json");
+        this.manageCookies = typeof document == "undefined"; //because node-fetch doesn't
+        this.cookies = {};
     }
     JsonServiceClient.prototype.setCredentials = function (userName, password) {
         this.userName = userName;
@@ -624,6 +630,20 @@ var JsonServiceClient = (function () {
         if (this.userName != null && this.password != null) {
             this.headers.set('Authorization', 'Basic ' + JsonServiceClient.toBase64(this.userName + ":" + this.password));
         }
+        if (this.manageCookies) {
+            var cookies = Object.keys(this.cookies)
+                .map(function (x) {
+                var c = _this.cookies[x];
+                return c.expires && c.expires < new Date()
+                    ? null
+                    : c.name + "=" + encodeURIComponent(c.value);
+            })
+                .filter(function (x) { return !!x; });
+            if (cookies.length > 0)
+                this.headers.set("Cookie", cookies.join("; "));
+            else
+                this.headers.delete("Cookie");
+        }
         // Set `compress` false due to common error
         // https://github.com/bitinn/node-fetch/issues/93#issuecomment-200791658
         var reqOptions = {
@@ -645,6 +665,18 @@ var JsonServiceClient = (function () {
             holdRes = res;
             if (!res.ok)
                 throw res;
+            if (_this.manageCookies) {
+                var setCookies = [];
+                res.headers.forEach(function (v, k) {
+                    if ("set-cookie" == k.toLowerCase())
+                        setCookies.push(v);
+                });
+                setCookies.forEach(function (x) {
+                    var cookie = exports.parseCookie(x);
+                    if (cookie)
+                        _this.cookies[cookie.name] = cookie;
+                });
+            }
             if (_this.responseFilter != null)
                 _this.responseFilter(res);
             var x = typeof request != "string" && typeof request.createResponse == 'function'
@@ -896,6 +928,48 @@ JsonServiceClient.toBase64 = function (str) {
     return _btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
         return String.fromCharCode(new Number('0x' + p1).valueOf());
     }));
+};
+exports.stripQuotes = function (s) {
+    return s && s[0] == '"' && s[s.length] == '"' ? s.slice(1, -1) : s;
+};
+exports.tryDecode = function (s) {
+    try {
+        return decodeURIComponent(s);
+    }
+    catch (e) {
+        return s;
+    }
+};
+exports.parseCookie = function (setCookie) {
+    if (!setCookie)
+        return null;
+    var to = null;
+    var pairs = setCookie.split(/; */);
+    for (var i = 0; i < pairs.length; i++) {
+        var pair = pairs[i];
+        var parts = exports.splitOnFirst(pair, '=');
+        var name = parts[0].trim();
+        var value = parts.length > 1 ? exports.tryDecode(exports.stripQuotes(parts[1].trim())) : null;
+        if (i == 0) {
+            to = { name: name, value: value, path: "/" };
+        }
+        else {
+            var lower = name.toLowerCase();
+            if (lower == "httponly") {
+                to.httpOnly = true;
+            }
+            else if (lower == "secure") {
+                to.secure = true;
+            }
+            else if (lower == "expires") {
+                to.expires = new Date(value);
+            }
+            else {
+                to[name] = value;
+            }
+        }
+    }
+    return to;
 };
 exports.toDate = function (s) { return new Date(parseFloat(/Date\(([^)]+)\)/.exec(s)[1])); };
 exports.toDateFmt = function (s) { return exports.dateFmt(exports.toDate(s)); };
@@ -3462,14 +3536,14 @@ var startListening = function () {
 var syncState = function () {
     client.get("/state").then(function (state) {
         var html = state.users.map(function (x) {
-            return "<div class=\"" + (x.userId == state.sub.userId ? 'me' : '') + "\"><img src=\"" + x.profileUrl + "\" /><b>@" + x.displayName + "</b><i>#" + x.userId + "</i><br/></div>";
+            return "<div class=\"" + (x.userId == state.sub.userId ? 'me' : '') + "\">\n                <img src=\"" + x.profileUrl + "\" /><b>@" + x.displayName + "</b><i>#" + x.userId + "</i><br/>\n            </div>";
         });
         $users.innerHTML = html.join('');
         $msgs.innerHTML = state.messages.reverse().join('');
     });
 };
-startListening();
 setInterval(syncState, 100);
+startListening();
 var sendChat = function () { return client.get("/chat", { message: $("#txtChat").value }); };
 var sendRaw = function () { return client.get("/raw", { message: $("#txtRaw").value }); };
 $("#btnChange").onclick = startListening;

@@ -27,9 +27,6 @@ const refresh = (e:ServerEventMessage) => {
 const refreshUsers = async () => {
     var users = await client.getChannelSubscribers();
     users.sort((x,y) => y.userId.localeCompare(x.userId));
-
-    var usersMap = {};
-    var userIds = Object.keys(usersMap);
     USERS = users.map(x => ({
         profileUrl: x.profileUrl,
         displayName: x.displayName,
