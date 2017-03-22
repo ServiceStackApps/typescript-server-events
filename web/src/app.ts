@@ -27,7 +27,6 @@ const refresh = (e:ServerEventMessage) => {
 const refreshUsers = async () => {
     var users = await client.getChannelSubscribers();
     users.sort((x,y) => y.userId.localeCompare(x.userId));
-    var usersMap = {};
     var html = users.map(x => 
         `<div class="${x.userId == sub.userId ? 'me' : ''}">
             <img src="${x.profileUrl}" /><b>@${x.displayName}</b><i>#${x.userId}</i><br/>

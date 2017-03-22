@@ -3724,14 +3724,13 @@ var refresh = function (e) {
     refreshUsers();
 };
 var refreshUsers = function () { return __awaiter(_this, void 0, void 0, function () {
-    var users, usersMap, html;
+    var users, html;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, client.getChannelSubscribers()];
             case 1:
                 users = _a.sent();
                 users.sort(function (x, y) { return y.userId.localeCompare(x.userId); });
-                usersMap = {};
                 html = users.map(function (x) {
                     return "<div class=\"" + (x.userId == sub.userId ? 'me' : '') + "\">\n            <img src=\"" + x.profileUrl + "\" /><b>@" + x.displayName + "</b><i>#" + x.userId + "</i><br/>\n        </div>";
                 });
