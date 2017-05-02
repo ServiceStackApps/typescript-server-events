@@ -278,9 +278,13 @@ var ServerEventsClient = (function () {
         this.updateChannels(channels);
         this.serviceClient = new JsonServiceClient(baseUrl);
         this.listeners = {};
+        this.withCredentials = true;
         if (!this.options.handlers)
             this.options.handlers = {};
     }
+    ServerEventsClient.prototype.getEventSourceOptions = function () {
+        return { withCredentials: this.withCredentials };
+    };
     ServerEventsClient.prototype.reconnectServerEvents = function (opt) {
         var _this = this;
         if (opt === void 0) { opt = {}; }
@@ -290,13 +294,17 @@ var ServerEventsClient = (function () {
             this.onError(opt.error);
         var hold = this.eventSource;
         var es = this.EventSource
-            ? new this.EventSource(opt.url || this.eventStreamUri || hold.url)
-            : new EventSource(opt.url || this.eventStreamUri || hold.url);
+            ? new this.EventSource(opt.url || this.eventStreamUri || hold.url, this.getEventSourceOptions())
+            : new EventSource(opt.url || this.eventStreamUri || hold.url, this.getEventSourceOptions());
         es.addEventListener('error', function (e) { return opt.onerror || hold.onerror || _this.onError; });
         es.addEventListener('message', opt.onmessage || hold.onmessage || this.onMessage);
         var fn = this.options.onReconnect;
         if (fn != null)
             fn.call(es, opt.error);
+        if (hold.removeEventListener) {
+            hold.removeEventListener('error', this.onError);
+            hold.removeEventListener('message', this.onMessage);
+        }
         hold.close();
         return this.eventSource = es;
     };
@@ -304,8 +312,8 @@ var ServerEventsClient = (function () {
         var _this = this;
         if (this.eventSource == null || this.eventSource.readyState === EventSource.CLOSED) {
             this.eventSource = this.EventSource
-                ? new this.EventSource(this.eventStreamUri)
-                : new EventSource(this.eventStreamUri);
+                ? new this.EventSource(this.eventStreamUri, this.getEventSourceOptions())
+                : new EventSource(this.eventStreamUri, this.getEventSourceOptions());
             this.eventSource.addEventListener('error', this.onError);
             this.eventSource.addEventListener('message', function (e) { return _this.onMessage(e); });
         }
@@ -570,6 +578,19 @@ HttpMethods.hasRequestBody = function (method) {
     return !(method === "GET" || method === "DELETE" || method === "HEAD" || method === "OPTIONS");
 };
 exports.HttpMethods = HttpMethods;
+var GetAccessToken = (function () {
+    function GetAccessToken() {
+    }
+    GetAccessToken.prototype.createResponse = function () { return new GetAccessTokenResponse(); };
+    GetAccessToken.prototype.getTypeName = function () { return "GetAccessToken"; };
+    return GetAccessToken;
+}());
+var GetAccessTokenResponse = (function () {
+    function GetAccessTokenResponse() {
+    }
+    return GetAccessTokenResponse;
+}());
+exports.GetAccessTokenResponse = GetAccessTokenResponse;
 var JsonServiceClient = (function () {
     function JsonServiceClient(baseUrl) {
         if (baseUrl == null)
@@ -588,23 +609,37 @@ var JsonServiceClient = (function () {
         this.userName = userName;
         this.password = password;
     };
+    // @deprecated use bearerToken property
     JsonServiceClient.prototype.setBearerToken = function (token) {
-        this.headers.set("Authorization", "Bearer " + token);
+        this.bearerToken = token;
     };
     JsonServiceClient.prototype.get = function (request, args) {
-        return this.send(HttpMethods.Get, request, args);
+        return typeof request != "string"
+            ? this.send(HttpMethods.Get, request, args)
+            : this.send(HttpMethods.Get, null, args, this.toAbsoluteUrl(request));
     };
     JsonServiceClient.prototype.delete = function (request, args) {
-        return this.send(HttpMethods.Delete, request, args);
+        return typeof request != "string"
+            ? this.send(HttpMethods.Delete, request, args)
+            : this.send(HttpMethods.Delete, null, args, this.toAbsoluteUrl(request));
     };
     JsonServiceClient.prototype.post = function (request, args) {
         return this.send(HttpMethods.Post, request, args);
     };
+    JsonServiceClient.prototype.postToUrl = function (url, request, args) {
+        return this.send(HttpMethods.Post, request, args, this.toAbsoluteUrl(url));
+    };
     JsonServiceClient.prototype.put = function (request, args) {
         return this.send(HttpMethods.Put, request, args);
     };
+    JsonServiceClient.prototype.putToUrl = function (url, request, args) {
+        return this.send(HttpMethods.Put, request, args, this.toAbsoluteUrl(url));
+    };
     JsonServiceClient.prototype.patch = function (request, args) {
         return this.send(HttpMethods.Patch, request, args);
+    };
+    JsonServiceClient.prototype.patchToUrl = function (url, request, args) {
+        return this.send(HttpMethods.Patch, request, args, this.toAbsoluteUrl(url));
     };
     JsonServiceClient.prototype.createUrlFromDto = function (method, request) {
         var url = exports.combinePaths(this.replyBaseUrl, exports.nameOf(request));
@@ -613,21 +648,22 @@ var JsonServiceClient = (function () {
             url = exports.appendQueryString(url, request);
         return url;
     };
-    JsonServiceClient.prototype.toAbsoluteUrl = function (method, relativeOrAbsoluteUrl) {
+    JsonServiceClient.prototype.toAbsoluteUrl = function (relativeOrAbsoluteUrl) {
         return relativeOrAbsoluteUrl.startsWith("http://") ||
             relativeOrAbsoluteUrl.startsWith("https://")
             ? relativeOrAbsoluteUrl
             : exports.combinePaths(this.baseUrl, relativeOrAbsoluteUrl);
     };
-    JsonServiceClient.prototype.send = function (method, request, args) {
+    JsonServiceClient.prototype.createRequest = function (method, request, args, url) {
         var _this = this;
-        var url = typeof request != "string"
-            ? this.createUrlFromDto(method, request)
-            : this.toAbsoluteUrl(method, request);
-        if (args) {
+        if (!url)
+            url = this.createUrlFromDto(method, request);
+        if (args)
             url = exports.appendQueryString(url, args);
+        if (this.bearerToken != null) {
+            this.headers.set("Authorization", "Bearer " + this.bearerToken);
         }
-        if (this.userName != null && this.password != null) {
+        else if (this.userName != null) {
             this.headers.set('Authorization', 'Basic ' + JsonServiceClient.toBase64(this.userName + ":" + this.password));
         }
         if (this.manageCookies) {
@@ -656,72 +692,110 @@ var JsonServiceClient = (function () {
         var req = new Request(url, reqOptions);
         if (HttpMethods.hasRequestBody(method))
             req.body = JSON.stringify(request);
-        var opt = { url: req.url };
+        var opt = { url: url };
         if (this.requestFilter != null)
             this.requestFilter(req, opt);
+        return [req, opt];
+    };
+    JsonServiceClient.prototype.createResponse = function (res, request) {
+        var _this = this;
+        if (!res.ok)
+            throw res;
+        if (this.manageCookies) {
+            var setCookies = [];
+            res.headers.forEach(function (v, k) {
+                if ("set-cookie" == k.toLowerCase())
+                    setCookies.push(v);
+            });
+            setCookies.forEach(function (x) {
+                var cookie = exports.parseCookie(x);
+                if (cookie)
+                    _this.cookies[cookie.name] = cookie;
+            });
+        }
+        if (this.responseFilter != null)
+            this.responseFilter(res);
+        var x = request && typeof request != "string" && typeof request.createResponse == 'function'
+            ? request.createResponse()
+            : null;
+        if (typeof x === 'string')
+            return res.text().then(function (o) { return o; });
+        var contentType = res.headers.get("content-type");
+        var isJson = contentType && contentType.indexOf("application/json") !== -1;
+        if (isJson) {
+            return res.json().then(function (o) { return o; });
+        }
+        if (typeof Uint8Array != "undefined" && x instanceof Uint8Array) {
+            if (typeof res.arrayBuffer != 'function')
+                throw new Error("This fetch polyfill does not implement 'arrayBuffer'");
+            return res.arrayBuffer().then(function (o) { return new Uint8Array(o); });
+        }
+        else if (typeof Blob == "function" && x instanceof Blob) {
+            if (typeof res.blob != 'function')
+                throw new Error("This fetch polyfill does not implement 'blob'");
+            return res.blob().then(function (o) { return o; });
+        }
+        var contentLength = res.headers.get("content-length");
+        if (contentLength === "0" || (contentLength == null && !isJson)) {
+            return x;
+        }
+        return res.json().then(function (o) { return o; }); //fallback
+    };
+    JsonServiceClient.prototype.handleError = function (holdRes, res) {
+        var _this = this;
+        if (res instanceof Error)
+            throw this.raiseError(holdRes, res);
+        // res.json can only be called once.
+        if (res.bodyUsed)
+            throw this.raiseError(res, createErrorResponse(res.status, res.statusText));
+        return res.json().then(function (o) {
+            var errorDto = exports.sanitize(o);
+            if (!errorDto.responseStatus)
+                throw createErrorResponse(res.status, res.statusText);
+            throw errorDto;
+        }).catch(function (error) {
+            // No responseStatus body, set from `res` Body object
+            if (error instanceof Error)
+                throw _this.raiseError(res, createErrorResponse(res.status, res.statusText));
+            throw _this.raiseError(res, error);
+        });
+    };
+    JsonServiceClient.prototype.send = function (method, request, args, url) {
+        var _this = this;
         var holdRes = null;
+        var _a = this.createRequest(method, request, args, url), req = _a[0], opt = _a[1];
         return fetch(opt.url || req.url, req)
             .then(function (res) {
             holdRes = res;
-            if (!res.ok)
-                throw res;
-            if (_this.manageCookies) {
-                var setCookies = [];
-                res.headers.forEach(function (v, k) {
-                    if ("set-cookie" == k.toLowerCase())
-                        setCookies.push(v);
-                });
-                setCookies.forEach(function (x) {
-                    var cookie = exports.parseCookie(x);
-                    if (cookie)
-                        _this.cookies[cookie.name] = cookie;
-                });
-            }
-            if (_this.responseFilter != null)
-                _this.responseFilter(res);
-            var x = typeof request != "string" && typeof request.createResponse == 'function'
-                ? request.createResponse()
-                : null;
-            if (typeof x === 'string')
-                return res.text().then(function (o) { return o; });
-            var contentType = res.headers.get("content-type");
-            var isJson = contentType && contentType.indexOf("application/json") !== -1;
-            if (isJson) {
-                return res.json().then(function (o) { return o; });
-            }
-            if (x instanceof Uint8Array) {
-                if (typeof res.arrayBuffer != 'function')
-                    throw new Error("This fetch polyfill does not implement 'arrayBuffer'");
-                return res.arrayBuffer().then(function (o) { return new Uint8Array(o); });
-            }
-            else if (typeof Blob == "function" && x instanceof Blob) {
-                if (typeof res.blob != 'function')
-                    throw new Error("This fetch polyfill does not implement 'blob'");
-                return res.blob().then(function (o) { return o; });
-            }
-            var contentLength = res.headers.get("content-length");
-            if (contentLength === "0" || (contentLength == null && !isJson)) {
-                return x;
-            }
-            return res.json().then(function (o) { return o; }); //fallback
+            var response = _this.createResponse(res, request);
+            return response;
         })
             .catch(function (res) {
-            if (res instanceof Error)
-                throw _this.raiseError(holdRes, res);
-            // res.json can only be called once.
-            if (res.bodyUsed)
-                throw _this.raiseError(res, createErrorResponse(res.status, res.statusText));
-            return res.json().then(function (o) {
-                var errorDto = exports.sanitize(o);
-                if (!errorDto.responseStatus)
-                    throw createErrorResponse(res.status, res.statusText);
-                throw errorDto;
-            }).catch(function (error) {
-                // No responseStatus body, set from `res` Body object
-                if (error instanceof Error)
-                    throw _this.raiseError(res, createErrorResponse(res.status, res.statusText));
-                throw _this.raiseError(res, error);
-            });
+            if (res.status === 401) {
+                if (_this.refreshToken) {
+                    var jwtReq = new GetAccessToken();
+                    jwtReq.refreshToken = _this.refreshToken;
+                    var url = _this.refreshTokenUri || _this.createUrlFromDto(HttpMethods.Post, jwtReq);
+                    return _this.postToUrl(url, jwtReq)
+                        .then(function (r) {
+                        _this.bearerToken = r.accessToken;
+                        var _a = _this.createRequest(method, request, args), req = _a[0], opt = _a[1];
+                        return fetch(opt.url || req.url, req)
+                            .then(function (res) { return _this.createResponse(res, request); })
+                            .catch(function (res) { return _this.handleError(holdRes, res); });
+                    })
+                        .catch(function (res) { return _this.handleError(holdRes, res); });
+                }
+                if (_this.onAuthenticationRequired) {
+                    return _this.onAuthenticationRequired().then(function () {
+                        var _a = _this.createRequest(method, request, args), req = _a[0], opt = _a[1];
+                        return fetch(opt.url || req.url, req)
+                            .then(function (res) { return _this.createResponse(res, request); })
+                            .catch(function (res) { return _this.handleError(holdRes, res); });
+                    });
+                }
+            }
+            return _this.handleError(holdRes, res);
         });
     };
     JsonServiceClient.prototype.raiseError = function (res, error) {
@@ -783,6 +857,11 @@ exports.nameOf = function (o) {
     return str.substring(9, str.indexOf("(")); //"function ".length == 9
 };
 /* utils */
+function log(o, prefix) {
+    if (prefix === void 0) { prefix = "LOG"; }
+    console.log(prefix, o);
+    return o;
+}
 exports.css = function (selector, name, value) {
     var els = typeof selector == "string"
         ? document.querySelectorAll(selector)
@@ -891,7 +970,7 @@ exports.appendQueryString = function (url, args) {
 var qsValue = function (arg) {
     if (arg == null)
         return "";
-    if (arg instanceof Uint8Array)
+    if (typeof Uint8Array != "undefined" && arg instanceof Uint8Array)
         return exports.bytesToBase64(arg);
     return encodeURIComponent(arg) || "";
 };

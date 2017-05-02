@@ -10,12 +10,12 @@
   "author": "ServiceStack",
   "dependencies": {
     "eventsource": "^0.2.2",
-    "servicestack-client": "0.0.30"
+    "servicestack-client": "0.0.34"
   },
   "devDependencies": {
     "@types/node": "^7.0.8",
     "ts-loader": "^2.0.1",
-    "typescript": "^2.2.1",
+    "typescript": "^2.3.2",
     "webpack": "^2.2.1"
   }
 }

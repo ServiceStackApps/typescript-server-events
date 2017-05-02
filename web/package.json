@@ -10,10 +10,10 @@
   "author": "ServiceStack",
   "devDependencies": {
     "ts-loader": "^2.0.1",
-    "typescript": "^2.2.1",
+    "typescript": "^2.3.2",
     "webpack": "^2.2.1"
   },
   "dependencies": {
-    "servicestack-client": "0.0.30"
+    "servicestack-client": "0.0.34"
   }
 }
